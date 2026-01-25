@@ -5,161 +5,174 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Comensales</title>
     <style>
-        :root { --bg: #f8fafc; --p: #2563eb; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --wa: #25d366; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root { --bg: #f8fafc; --p: #2563eb; --si: #22c55e; --wa: #25d366; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
-        .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 500px; margin: auto; }
-        h2 { font-size: 1.4rem; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .admin-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; opacity: 0.5; }
-        .cycle-btn { border: 1px solid #cbd5e1; padding: 12px 2px; border-radius: 8px; cursor: pointer; flex: 1; font-weight: 700; font-size: 0.8rem; background: white; transition: 0.2s; }
+        .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        .day-row { display: grid; grid-template-columns: 60px 1fr 45px; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .cycle-btn { border: 1px solid #ccc; padding: 10px 2px; border-radius: 6px; flex: 1; font-size: 0.75rem; background: white; font-weight: bold; height: 38px; }
         .state-sí { background: var(--si) !important; color: white; border-color: var(--si); }
-        .state-lonchera { background: var(--lonchera) !important; color: white; border-color: var(--lonchera); }
-        .state-tarde { background: var(--tarde) !important; color: white; border-color: var(--tarde); }
-        .state-temprano { background: var(--temprano) !important; color: white; border-color: var(--temprano); }
-        .day-row { display: grid; grid-template-columns: 65px 1fr 45px; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f1f5f9; gap: 8px; }
-        .today-row { background: #eff6ff; border-left: 4px solid var(--p); }
-        .date-num { font-size: 1.4rem; font-weight: 800; }
-        .date-day { font-size: 0.85rem; font-weight: 600; color: #64748b; }
-        .opt-label { cursor: pointer; font-size: 1.7rem; display: flex; align-items: center; justify-content: center; opacity: 0.1; height: 38px; }
-        .opt-label.active { opacity: 1; transform: scale(1.1); }
-        #loadingOverlay { display:none; text-align:center; color: var(--p); font-weight: bold; padding: 10px; }
-        #userPanel, #communityPanel, #adminPanel { display: none; background: #1e293b; color: white; padding: 25px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 94%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); }
-        .panel-content { max-height: 50vh; overflow-y: auto; margin: 15px 0; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; }
-        .main-btn { width:100%; padding:18px; border:none; border-radius:14px; cursor:pointer; font-size:1rem; font-weight:bold; color:white; margin-top:10px; }
-        .bg-p { background: var(--p); } .bg-wa { background: var(--wa); } .bg-sec { background: #475569; }
+        .state-lonchera { background: #eab308 !important; color: white; }
+        .state-tarde { background: #a855f7 !important; color: white; }
+        .state-temprano { background: #06b6d4 !important; color: white; }
+        .opt-label { font-size: 1.5rem; opacity: 0.1; cursor: pointer; text-align: center; user-select: none; }
+        .opt-label.active { opacity: 1; }
+        #userPanel { display: none; background: #1e293b; color: white; padding: 20px; border-radius: 20px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 90%; max-width: 400px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.7); }
+        .main-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Comensales <button onclick="checkAdmin()" class="admin-btn">⚙️</button></h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom: 10px;">
-            <select id="userDropdown" style="padding:10px; border-radius:8px;" onchange="syncFromCloud()"></select>
-            <select id="mSelect" style="padding:10px; border-radius:8px;" onchange="render(); syncFromCloud();"></select>
+        <h2>Comensales <button onclick="addU()" style="float:right; background:none; border:none; font-size:1.2rem;">⚙️</button></h2>
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <select id="uSel" style="flex:1; padding:10px; border-radius:8px;" onchange="sync()"></select>
+            <select id="mSel" style="flex:1; padding:10px; border-radius:8px;" onchange="render(); sync();"></select>
         </div>
-        <div id="loadingOverlay">🔄 Sincronizando datos...</div>
-        <div id="calList" style="max-height: 60vh; overflow-y: auto;"></div>
-        <button onclick="save()" class="main-btn bg-p" id="saveBtn">💾 Guardar Cambios</button>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-            <button onclick="openUserSummary()" class="main-btn bg-wa">📱 Mi Resumen</button>
-            <button onclick="openCommunity()" class="main-btn bg-sec">🌐 Todos</button>
-        </div>
+        <div id="loading" style="display:none; text-align:center; color:var(--p); font-weight:bold; padding:5px;">🔄 Sincronizando...</div>
+        <div id="list" style="max-height: 55vh; overflow-y: auto;"></div>
+        <button onclick="save()" id="sBtn" class="main-btn" style="background:var(--p); color:white;">💾 GUARDAR CAMBIOS</button>
+        <button onclick="showResumen()" class="main-btn" style="background:var(--wa); color:white;">📱 MI RESUMEN</button>
     </div>
 
-    <div id="userPanel"><h3 id="uTitle"></h3><div id="uList" class="panel-content"></div><button onclick="sendUserWA()" class="main-btn bg-wa">📱 Enviar WA</button><button onclick="closeP('userPanel')" class="main-btn bg-sec">Cerrar</button></div>
-    <div id="communityPanel"><h3>📅 Resumen</h3><input type="date" id="comDate" onchange="refreshCom()"><div id="comList" class="panel-content"></div><button onclick="closeP('communityPanel')" class="main-btn bg-sec">Cerrar</button></div>
+    <div id="userPanel">
+        <h3>Tu Resumen</h3>
+        <div id="uResList" style="max-height:250px; overflow-y:auto; margin-bottom:15px; font-size:0.9rem;"></div>
+        <button onclick="sendWA()" class="main-btn" style="background:var(--wa); color:white;">ENVIAR WHATSAPP</button>
+        <button onclick="document.getElementById('userPanel').style.display='none'" class="main-btn" style="background:#475569; color:white;">CERRAR</button>
+    </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8_MtLxPm3QOsyZO5_vluXrxb2vyJETntWT5yF2e8OBkWKn9W2WWjh-iL7ReuAl5fUnQ/exec";
-        let users = JSON.parse(localStorage.getItem('comedor_users')) || [];
-        let cloudData = [];
+        const API = "https://script.google.com/macros/s/AKfycbxyChIXyHO4jwmUl18M4sxvSsf7aQ_z_SbfF5jKs3Pj9O8KNVyXavdAK7iuOiaLYtkrjg/exec";
+        let users = JSON.parse(localStorage.getItem('com_users')) || [];
         const states = { D: ["No", "Sí", "Lonchera"], A: ["No", "Sí", "Tarde", "Temprano"], C: ["No", "Sí"] };
 
         function init() {
-            const mS = document.getElementById('mSelect');
+            const m = document.getElementById('mSel');
             const now = new Date();
-            mS.innerHTML = "";
             for(let i=0; i<2; i++) {
-                let d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-                mS.innerHTML += `<option value="${d.getFullYear()}-${d.getMonth()+1}">${d.toLocaleDateString('es',{month:'short', year:'numeric'}).toUpperCase()}</option>`;
+                let d = new Date(now.getFullYear(), now.getMonth()+i, 1);
+                m.innerHTML += `<option value="${d.getFullYear()}-${d.getMonth()+1}">${d.toLocaleDateString('es',{month:'short', year:'numeric'}).toUpperCase()}</option>`;
             }
-            updateUsers(); render(); syncFromCloud();
+            refreshU(); render(); sync();
         }
 
-        function updateUsers() {
-            document.getElementById('userDropdown').innerHTML = users.map(u => `<option value="${u.name}">${u.name}</option>`).join('') || '<option>Añade usuario en ⚙️</option>';
+        function refreshU() {
+            const sel = document.getElementById('uSel');
+            sel.innerHTML = users.map(u => `<option value="${u}">${u}</option>`).join('');
+            if(!users.length) sel.innerHTML = '<option value="">Añadir comensal -> ⚙️</option>';
+        }
+
+        function addU() { 
+            let n = prompt("Nombre del comensal (Ej: EMU):"); 
+            if(n) { 
+                users.push(n.trim()); 
+                localStorage.setItem('com_users', JSON.stringify(users)); 
+                refreshU(); 
+                sync();
+            } 
         }
 
         function render() {
-            const list = document.getElementById('calList'); list.innerHTML = "";
-            const [y, m] = document.getElementById('mSelect').value.split('-').map(Number);
-            const days = new Date(y, m, 0).getDate();
-            const todayStr = new Date().toISOString().split('T')[0];
-
-            for(let i=1; i<=days; i++) {
-                let dateKey = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
-                let d = new Date(y, m-1, i);
-                let isToday = dateKey === todayStr;
-
-                list.innerHTML += `<div class="day-row ${isToday?'today-row':''}" id="row-${dateKey}">
-                    <div><div class="date-num">${i}</div><div class="date-day">${d.toLocaleDateString('es',{weekday:'short'})}</div></div>
-                    <div style="display:flex; gap:4px;">
+            const list = document.getElementById('list'); list.innerHTML = "";
+            const [y, m] = document.getElementById('mSel').value.split('-').map(Number);
+            const total = new Date(y, m, 0).getDate();
+            for(let i=1; i<=total; i++) {
+                let key = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
+                list.innerHTML += `<div class="day-row" id="row-${key}">
+                    <div style="font-weight:bold; color:#64748b;">${i}</div>
+                    <div style="display:flex; gap:3px;">
                         <button class="cycle-btn" onclick="cycle(this,'D')" data-t="Desayuno">No</button>
                         <button class="cycle-btn" onclick="cycle(this,'A')" data-t="Almuerzo">No</button>
                         <button class="cycle-btn" onclick="cycle(this,'C')" data-t="Cena">No</button>
                     </div>
-                    <div>
-                        <label class="opt-label">🤢<input type="checkbox" style="display:none" class="db-check" onchange="this.parentElement.classList.toggle('active')"></label>
-                        <label class="opt-label">🛏️<input type="checkbox" style="display:none" class="bj-check" onchange="this.parentElement.classList.toggle('active')"></label>
-                    </div>
+                    <div class="opt-label" onclick="this.classList.toggle('active')">🤢</div>
                 </div>`;
             }
         }
 
-        async function syncFromCloud() {
-            const user = document.getElementById('userDropdown').value;
+        function cycle(btn, type) {
+            let opts = states[type];
+            btn.innerText = opts[(opts.indexOf(btn.innerText)+1)%opts.length];
+            btn.className = "cycle-btn " + (btn.innerText!=="No"?"state-"+btn.innerText.toLowerCase():"");
+        }
+
+        async function sync() {
+            const user = document.getElementById('uSel').value;
             if(!user) return;
-            document.getElementById('loadingOverlay').style.display = "block";
+            document.getElementById('loading').style.display="block";
             try {
-                const r = await fetch(WEB_APP_URL);
-                cloudData = await r.json();
+                const res = await fetch(API);
+                const data = await res.json();
                 
-                // Reset visual
+                // Limpiar todo antes de cargar
                 document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText="No"; b.className="cycle-btn"; });
                 document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
 
-                // Pintar datos del usuario
-                cloudData.filter(d => d.user === user).forEach(d => {
-                    let cleanDate = d.date.split('T')[0];
-                    let row = document.getElementById(`row-${cleanDate}`);
+                // Filtrar por usuario (ignorando mayúsculas/minúsculas por seguridad)
+                data.filter(r => r.user.toString().toLowerCase() === user.toLowerCase()).forEach(r => {
+                    let key = r.date.split('T')[0]; 
+                    let row = document.getElementById(`row-${key}`);
                     if(row) {
-                        let btn = row.querySelector(`[data-t="${d.type}"]`);
-                        if(btn) { btn.innerText = d.status; btn.className = "cycle-btn state-" + d.status.toLowerCase(); }
-                        if(d.blanda === true || d.blanda === "TRUE") row.querySelector('.db-check').parentElement.classList.add('active');
-                        if(d.bandeja === true || d.bandeja === "TRUE") row.querySelector('.bj-check').parentElement.classList.add('active');
+                        let b = row.querySelector(`[data-t="${r.type}"]`);
+                        if(b) { 
+                            b.innerText = r.status; 
+                            b.className = "cycle-btn state-"+r.status.toLowerCase(); 
+                        }
+                        // Detectamos si blanda es true, "TRUE" o "true"
+                        if(String(r.blanda).toLowerCase() === "true") {
+                            row.querySelector('.opt-label').classList.add('active');
+                        }
                     }
                 });
-            } catch(e) { console.log(e); }
-            document.getElementById('loadingOverlay').style.display = "none";
-        }
-
-        function cycle(btn, type) {
-            let opts = states[type];
-            btn.innerText = opts[(opts.indexOf(btn.innerText) + 1) % opts.length];
-            btn.className = "cycle-btn " + (btn.innerText !== "No" ? "state-" + btn.innerText.toLowerCase() : "");
+            } catch(e) { console.error("Error sync:", e); }
+            document.getElementById('loading').style.display="none";
         }
 
         async function save() {
-            const user = document.getElementById('userDropdown').value;
-            const btn = document.getElementById('saveBtn');
-            btn.innerText = "⏳ Guardando..."; btn.disabled = true;
-            let data = [];
+            const user = document.getElementById('uSel').value;
+            if(!user) return alert("Añade un usuario primero");
+            const btn = document.getElementById('sBtn');
+            btn.innerText = "⏳ GUARDANDO..."; btn.disabled = true;
+            
+            let records = [];
             document.querySelectorAll('.day-row').forEach(row => {
                 const date = row.id.replace('row-','');
-                const bl = row.querySelector('.db-check').parentElement.classList.contains('active');
-                const bj = row.querySelector('.bj-check').parentElement.classList.contains('active');
+                const blanda = row.querySelector('.opt-label').classList.contains('active');
                 row.querySelectorAll('.cycle-btn').forEach(b => {
-                    if(b.innerText !== "No") data.push({ user, date, type: b.dataset.t, status: b.innerText, blanda: bl, bandeja: bj });
+                    if(b.innerText !== "No") records.push({ user, date, type: b.dataset.t, status: b.innerText, blanda });
                 });
             });
-            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(data) });
-            setTimeout(() => { syncFromCloud(); btn.innerText = "💾 Guardar Cambios"; btn.disabled = false; alert("Guardado!"); }, 1500);
+            
+            try {
+                await fetch(API, { method:'POST', mode:'no-cors', body: JSON.stringify(records) });
+                setTimeout(() => { 
+                    sync(); 
+                    btn.innerText = "💾 GUARDAR CAMBIOS"; 
+                    btn.disabled = false;
+                }, 1200);
+            } catch(e) { 
+                alert("Error al conectar"); 
+                btn.disabled = false; 
+            }
         }
 
-        function openUserSummary() {
-            const user = document.getElementById('userDropdown').value;
-            document.getElementById('uTitle').innerText = "Resumen: " + user;
+        function showResumen() {
             let html = "";
             document.querySelectorAll('.day-row').forEach(row => {
-                const txt = Array.from(row.querySelectorAll('.cycle-btn')).filter(b => b.innerText !== "No").map(b => b.dataset.t[0]+":"+b.innerText).join(', ');
-                if(txt) html += `<div style="margin-bottom:8px; border-bottom:1px solid #444;">Día ${row.id.split('-')[2]}: ${txt}</div>`;
+                let items = Array.from(row.querySelectorAll('.cycle-btn')).filter(b => b.innerText !== "No").map(b => b.dataset.t[0]+":"+b.innerText);
+                if(items.length) {
+                    let day = row.id.split('-')[2];
+                    html += `<p style="border-bottom:1px solid #444; padding:5px 0;">Día ${day}: ${items.join(', ')}</p>`;
+                }
             });
-            document.getElementById('uList').innerHTML = html || "Sin registros.";
+            document.getElementById('uResList').innerHTML = html || "No tienes pedidos marcados.";
             document.getElementById('userPanel').style.display = 'block';
         }
 
-        function checkAdmin() { let p = prompt("Clave:"); if(p === "1234") { let n = prompt("Nombre:"); if(n) { users.push({name:n}); localStorage.setItem('comedor_users', JSON.stringify(users)); updateUsers(); } } }
-        function closeP(id) { document.getElementById(id).style.display = 'none'; }
-        
+        function sendWA() {
+            const list = document.getElementById('uResList').innerText;
+            window.open("https://wa.me/?text=" + encodeURIComponent("📝 MI PEDIDO:\n" + list));
+        }
+
         init();
     </script>
 </body>
