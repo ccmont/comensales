@@ -30,7 +30,9 @@
         .date-day { font-size: 0.85rem; font-weight: 600; text-transform: lowercase; color: #64748b; }
         .opt-label { cursor: pointer; font-size: 1.7rem; display: flex; align-items: center; justify-content: center; opacity: 0.1; height: 38px; }
         .opt-label.active { opacity: 1; transform: scale(1.1); }
-        #adminPanel, #communityPanel { display: none; background: #1e293b; color: white; padding: 25px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 94%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); }
+        
+        #adminPanel, #communityPanel, #userPanel { display: none; background: #1e293b; color: white; padding: 25px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 94%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); }
+        
         .panel-content { max-height: 50vh; overflow-y: auto; margin: 15px 0; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; }
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .main-btn { width:100%; padding:18px; border:none; border-radius:14px; cursor:pointer; font-size:1rem; font-weight:bold; color:white; }
@@ -49,9 +51,16 @@
         <div id="calList" style="max-height: 60vh; overflow-y: auto; scroll-behavior: smooth;"></div>
         <button onclick="save()" class="main-btn bg-p" id="saveBtn" style="margin-top:15px;">💾 Guardar mis Cambios</button>
         <div class="btn-group">
-            <button onclick="sendUserSummary()" class="main-btn bg-wa" style="padding:14px; font-size:0.9rem;">📱 Mi Resumen</button>
+            <button onclick="openUserSummary()" class="main-btn bg-wa" style="padding:14px; font-size:0.9rem;">📱 Mi Resumen</button>
             <button onclick="openCommunity()" class="main-btn bg-sec" style="padding:14px; font-size:0.9rem;">🌐 Resumen Todos</button>
         </div>
+    </div>
+
+    <div id="userPanel">
+        <h3 id="userPanelTitle">Mi Resumen</h3>
+        <div id="userSummaryList" class="panel-content"></div>
+        <button onclick="sendUserSummaryWA()" class="main-btn bg-wa" style="margin-bottom:8px;">📱 Enviar WhatsApp</button>
+        <button onclick="document.getElementById('userPanel').style.display='none'" class="main-btn bg-sec">Cerrar</button>
     </div>
 
     <div id="communityPanel">
@@ -87,9 +96,7 @@
                 mSelect.innerHTML += `<option value="${d.getFullYear()}-${d.getMonth()+1}">${mesCorto} ${d.getFullYear()}</option>`;
             }
             document.getElementById('comDate').valueAsDate = new Date();
-            updateUserDropdown(); 
-            render(); 
-            syncFromCloud();
+            updateUserDropdown(); render(); syncFromCloud();
         }
 
         function updateUserDropdown() {
@@ -101,19 +108,14 @@
             const list = document.getElementById('calList'); list.innerHTML = "";
             const [y, m] = document.getElementById('mSelect').value.split('-').map(Number);
             const daysInMonth = new Date(y, m, 0).getDate();
-            const today = new Date();
+            const today = new Date(); today.setHours(0,0,0,0);
             const isCurrentMonth = (today.getFullYear() === y && (today.getMonth() + 1) === m);
-            
             let todayRowId = null;
 
             for(let i=1; i<=daysInMonth; i++) {
                 let d = new Date(y, m-1, i);
-                d.setHours(0,0,0,0);
-                
-                let todayCompare = new Date(); todayCompare.setHours(0,0,0,0);
-                let isPast = d < todayCompare;
-                let isToday = d.getTime() === todayCompare.getTime();
-                
+                let isPast = d < today;
+                let isToday = d.getTime() === today.getTime();
                 let key = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
                 if(isToday) todayRowId = `row-${key}`;
 
@@ -131,18 +133,14 @@
                 </div>`;
             }
 
-            // Auto-scroll al día de hoy si estamos en el mes actual
             if(isCurrentMonth && todayRowId) {
                 setTimeout(() => {
                     const row = document.getElementById(todayRowId);
                     if(row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }, 100);
-            } else {
-                list.scrollTop = 0; // Al cambiar de mes, volver arriba
-            }
+            } else { list.scrollTop = 0; }
         }
 
-        // --- El resto de funciones (syncFromCloud, save, openCommunity, etc.) se mantienen igual ---
         async function syncFromCloud() {
             const user = document.getElementById('userDropdown').value;
             document.getElementById('loadingOverlay').style.display = "block";
@@ -153,8 +151,10 @@
                 const userRecords = allCloudData.filter(r => r.user === user);
                 document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText = "No"; b.className = "cycle-btn"; });
                 document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
+
                 userRecords.forEach(r => {
-                    let key = new Date(r.date).toISOString().split('T')[0];
+                    let rDate = new Date(r.date);
+                    let key = `${rDate.getFullYear()}-${(rDate.getMonth()+1).toString().padStart(2,'0')}-${rDate.getDate().toString().padStart(2,'0')}`;
                     let row = document.getElementById(`row-${key}`);
                     if(row) {
                         let btn = row.querySelector(`[data-t="${r.type}"]`);
@@ -165,7 +165,6 @@
                 });
             } catch(e) { console.error("Error"); }
             document.getElementById('loadingOverlay').style.display = "none";
-            if(document.getElementById('communityPanel').style.display === 'block') refreshCommunity();
         }
 
         function cycle(btn, type) {
@@ -178,7 +177,7 @@
             const name = document.getElementById('userDropdown').value;
             const btn = document.getElementById('saveBtn');
             if(!name) return alert("Selecciona usuario");
-            btn.innerText = "Guardando..."; btn.disabled = true;
+            btn.innerText = "⏳ Guardando..."; btn.disabled = true;
             let tempRecords = [];
             document.querySelectorAll('.day-row:not(.past-row)').forEach(row => {
                 const date = row.id.replace('row-','');
@@ -192,21 +191,80 @@
             });
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(tempRecords) });
-                alert("¡Guardado!"); await syncFromCloud();
-            } catch (e) { alert("Error"); }
-            btn.innerText = "💾 Guardar mis Cambios"; btn.disabled = false;
+                setTimeout(async () => {
+                    await syncFromCloud();
+                    btn.innerText = "💾 Guardar mis Cambios"; btn.disabled = false;
+                    alert("¡Datos guardados!");
+                }, 2000);
+            } catch (e) { alert("Error"); btn.disabled = false; btn.innerText = "💾 Guardar mis Cambios"; }
+        }
+
+        // --- NUEVA FUNCIÓN MI RESUMEN EN PANTALLA ---
+        function openUserSummary() {
+            const name = document.getElementById('userDropdown').value;
+            if(!name) return alert("Selecciona usuario");
+            const monthLabel = document.getElementById('mSelect').options[document.getElementById('mSelect').selectedIndex].text;
+            document.getElementById('userPanelTitle').innerText = `Resumen: ${name}`;
+            const listDiv = document.getElementById('userSummaryList');
+            listDiv.innerHTML = "";
+            let hasData = false;
+
+            document.querySelectorAll('.day-row:not(.past-row)').forEach(row => {
+                const day = row.querySelector('.date-num').innerText;
+                const dayName = row.querySelector('.date-day').innerText;
+                const entries = Array.from(row.querySelectorAll('.cycle-btn'))
+                                     .filter(b => b.innerText !== "No")
+                                     .map(b => `${b.dataset.t}: ${b.innerText}`);
+                
+                const blanda = row.querySelector('.db-check').parentElement.classList.contains('active');
+                const bandeja = row.querySelector('.bj-check').parentElement.classList.contains('active');
+                
+                if(entries.length > 0) {
+                    hasData = true;
+                    let extras = (blanda ? " [🤢 Blanda]" : "") + (bandeja ? " [🛏️ Bandeja]" : "");
+                    listDiv.innerHTML += `<div style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size:0.9rem;">
+                        <strong>Día ${day} (${dayName}):</strong><br>
+                        <span style="color:var(--si)">${entries.join(', ')}</span> ${extras}
+                    </div>`;
+                }
+            });
+
+            if(!hasData) listDiv.innerHTML = "No tienes nada marcado para los próximos días.";
+            document.getElementById('userPanel').style.display = 'block';
+        }
+
+        function sendUserSummaryWA() {
+            const name = document.getElementById('userDropdown').value;
+            const monthLabel = document.getElementById('mSelect').options[document.getElementById('mSelect').selectedIndex].text;
+            let msg = `📝 *MI RESUMEN - ${name}*\n📅 *${monthLabel}*\n\n`;
+            let hasData = false;
+            
+            document.querySelectorAll('.day-row:not(.past-row)').forEach(row => {
+                const day = row.querySelector('.date-num').innerText;
+                const entries = Array.from(row.querySelectorAll('.cycle-btn')).filter(b => b.innerText !== "No").map(b => `${b.dataset.t}:${b.innerText}`);
+                const blanda = row.querySelector('.db-check').parentElement.classList.contains('active');
+                const bandeja = row.querySelector('.bj-check').parentElement.classList.contains('active');
+                
+                if(entries.length > 0) {
+                    hasData = true;
+                    let extra = (blanda ? " [🤢]" : "") + (bandeja ? " [🛏️]" : "");
+                    msg += `🔹 Día ${day}: ${entries.join(', ')}${extra}\n`;
+                }
+            });
+            if(!hasData) return alert("Nada marcado.");
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
         async function openCommunity() { 
             document.getElementById('communityPanel').style.display = 'block'; 
-            document.getElementById('comList').innerHTML = "Cargando datos frescos...";
+            document.getElementById('comList').innerHTML = "Cargando...";
             await syncFromCloud();
+            refreshCommunity();
         }
 
         function refreshCommunity() {
             const dateInput = document.getElementById('comDate').value;
-            const list = document.getElementById('comList'); 
-            list.innerHTML = "";
+            const list = document.getElementById('comList'); list.innerHTML = "";
             if(!dateInput) return;
             const daily = allCloudData.filter(r => new Date(r.date).toISOString().split('T')[0] === dateInput);
             if(daily.length === 0) { list.innerHTML = "No hay registros."; return; }
@@ -232,21 +290,6 @@
                     msg += `\n`;
                 }
             });
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
-        }
-
-        function sendUserSummary() {
-            const name = document.getElementById('userDropdown').value;
-            const monthLabel = document.getElementById('mSelect').options[document.getElementById('mSelect').selectedIndex].text;
-            if(!name) return alert("Selecciona usuario");
-            let msg = `📝 *MI RESUMEN - ${name}*\n📅 *${monthLabel}*\n\n`;
-            let hasData = false;
-            document.querySelectorAll('.day-row:not(.past-row)').forEach(row => {
-                const day = row.querySelector('.date-num').innerText;
-                const entries = Array.from(row.querySelectorAll('.cycle-btn')).filter(b => b.innerText !== "No").map(b => `${b.dataset.t}:${b.innerText}`);
-                if(entries.length > 0) { hasData = true; msg += `🔹 Día ${day}: ${entries.join(', ')}\n`; }
-            });
-            if(!hasData) return alert("Nada marcado.");
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
