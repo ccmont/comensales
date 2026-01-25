@@ -17,7 +17,6 @@
         .cycle-btn { border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; flex: 1; font-weight: 700; font-size: 0.75rem; background: white; height: 42px; color: #64748b; }
         .cycle-btn:disabled { opacity: 0.5; border-style: dashed; cursor: not-allowed; }
         
-        /* Estados activos con colores */
         .state-sí { background: var(--si) !important; color: white; border-color: var(--si); }
         .state-lonchera { background: var(--lonchera) !important; color: white; border-color: var(--lonchera); }
         .state-tarde { background: var(--tarde) !important; color: white; border-color: var(--tarde); }
@@ -50,7 +49,7 @@
         <div id="calList" style="max-height: 50vh; overflow-y: auto; scroll-behavior: smooth; margin-top: 10px;"></div>
         
         <button onclick="save()" class="main-btn" style="background:var(--p);" id="saveBtn">💾 GUARDAR CAMBIOS</button>
-        <button onclick="window.location.href='cocina.html'" class="main-btn" style="background:#64748b; margin-top:5px; padding:12px;">📊 RESUMEN</button>
+        <button onclick="window.location.href='cocina.html'" class="main-btn" style="background:#64748b; margin-top:5px; padding:12px;">📊 COCINA</button>
     </div>
 
     <div id="adminPanel">
@@ -66,8 +65,6 @@
         
         let allUsers = [];
         let allRecords = [];
-        
-        // El primer elemento del array es el "label" por defecto
         const states = { 
             A: ["ALM", "Sí", "Tarde", "Temprano"], 
             C: ["CEN", "Sí"], 
@@ -115,13 +112,9 @@
                 let isToday = dateKey === hoy.toISOString().split('T')[0];
                 if(isToday) targetId = `row-${dateKey}`;
 
-                // ORDEN CAMBIADO: Almuerzo (A), Cena (C), Desayuno (D)
                 list.innerHTML += `
                 <div class="day-row ${isPast?'past-row':''} ${isToday?'today-row':''}" id="row-${dateKey}">
-                    <div>
-                        <div class="date-num">${i}</div>
-                        <div class="day-name">${d.toLocaleDateString('es',{weekday:'short'})}</div>
-                    </div>
+                    <div><div class="date-num">${i}</div><div class="day-name">${d.toLocaleDateString('es',{weekday:'short'})}</div></div>
                     <div style="display:flex; gap:4px;">
                         <button class="cycle-btn" ${isPast?'disabled':''} onclick="cycle(this,'A')" data-t="Almuerzo">ALM</button>
                         <button class="cycle-btn" ${isPast?'disabled':''} onclick="cycle(this,'C')" data-t="Cena">CEN</button>
@@ -139,15 +132,9 @@
         function cycle(btn, type) {
             if(btn.disabled) return;
             let opts = states[type];
-            let nextIndex = (opts.indexOf(btn.innerText) + 1) % opts.length;
-            btn.innerText = opts[nextIndex];
-            
-            // Si no es el estado inicial (ALM, CEN, DES), poner color
-            if(nextIndex !== 0) {
-                btn.className = "cycle-btn state-" + btn.innerText.toLowerCase();
-            } else {
-                btn.className = "cycle-btn";
-            }
+            let nextIdx = (opts.indexOf(btn.innerText) + 1) % opts.length;
+            btn.innerText = opts[nextIdx];
+            btn.className = "cycle-btn" + (nextIdx !== 0 ? " state-" + btn.innerText.toLowerCase() : "");
         }
 
         function syncData() {
@@ -180,16 +167,16 @@
                 const isBl = row.querySelector('.bl-check').parentElement.classList.contains('active');
                 const isBj = row.querySelector('.bj-check').parentElement.classList.contains('active');
                 row.querySelectorAll('.cycle-btn').forEach(b => {
-                    // Solo guardamos si el estado NO es el inicial (ALM, CEN, DES)
-                    if(!Object.values(states).some(s => s[0] === b.innerText)) {
-                        records.push({user:name, date, type:b.dataset.t, status:b.innerText, blanda:isBl, bandeja:isBj, diet});
-                    }
+                    const statusVal = b.innerText;
+                    const esDef = Object.values(states).some(s => s[0] === statusVal);
+                    // Enviamos "No" si es ALM/CEN/DES para borrarlo
+                    records.push({user:name, date, type:b.dataset.t, status: esDef ? "No" : statusVal, blanda: esDef ? false : isBl, bandeja: esDef ? false : isBj, diet});
                 });
             });
 
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:"saveRecords", records}) });
-                setTimeout(() => { fetchFromCloud(); btn.innerText = "💾 GUARDAR CAMBIOS"; btn.disabled = false; }, 1500);
+                setTimeout(() => { fetchFromCloud(); btn.innerText = "💾 GUARDAR CAMBIOS"; btn.disabled = false; }, 1200);
             } catch(e) { alert("Error"); btn.disabled = false; }
         }
 
@@ -206,15 +193,10 @@
         async function addUserCloud() {
             const name = document.getElementById('newU').value.trim();
             const diet = document.getElementById('newD').value.trim();
-            if(!name) return alert("Escribe un nombre");
-            const btn = document.getElementById('addUserBtn');
-            btn.innerText = "⏳ REGISTRANDO..."; btn.disabled = true;
-            try {
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:"addUser", name, diet}) });
-                location.reload();
-            } catch(e) { alert("Error"); btn.disabled = false; }
+            if(!name) return;
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:"addUser", name, diet}) });
+            location.reload();
         }
-
         function openAdmin() { document.getElementById('adminPanel').style.display='block'; }
         function saveLastUser() { localStorage.setItem('last_user', document.getElementById('userDropdown').value); }
         init();
