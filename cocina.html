@@ -22,6 +22,7 @@
         .b-blanda { background: #ef4444; }
         .b-bandeja { background: #6366f1; }
         .diet-info { font-size: 0.8rem; color: #64748b; font-style: italic; display: block; }
+        .no-data-section { margin-top: 10px; padding-top: 10px; border-top: 1px dashed #cbd5e1; font-size: 0.85rem; color: #64748b; }
         .wa-btn { background: #25d366; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; }
         #loading { text-align: center; color: var(--p); font-weight: bold; margin: 10px 0; }
     </style>
@@ -39,10 +40,10 @@
     </div>
 
     <script>
-        // LA MISMA URL QUE EN COMENSALES
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyXXjk17cqkMYl3NVAvnJ3tomiETfcva0UFMquw2qPgL3TfgxxgZZB7Le1cStO2LFrF0A/exec";
         
         let allRecords = [];
+        let allUsers = [];
 
         async function fetchData() {
             document.getElementById('loading').style.display = "block";
@@ -50,6 +51,7 @@
                 const resp = await fetch(WEB_APP_URL);
                 const data = await resp.json();
                 allRecords = data.records || [];
+                allUsers = data.users || [];
                 renderCocina();
             } catch(e) { console.error(e); }
             document.getElementById('loading').style.display = "none";
@@ -67,14 +69,20 @@
                 return rDate === selectedDate;
             });
 
-            const tipos = ["Desayuno", "Almuerzo", "Cena"];
+            const tipos = ["Almuerzo", "Cena", "Desayuno"];
             
             tipos.forEach(tipo => {
                 const items = filtered.filter(r => r.type === tipo);
-                if(items.length > 0) {
+                
+                // Identificar quiénes faltan por marcar para este tipo de comida
+                const markedUserNames = items.map(i => i.user);
+                const unmarkedUsers = allUsers.filter(u => !markedUserNames.includes(u.name));
+
+                if(items.length > 0 || unmarkedUsers.length > 0) {
                     let html = `<div class="type-group">
-                        <div class="type-title"><span>${tipo.toUpperCase()}</span> <span>Total: ${items.length}</span></div>`;
+                        <div class="type-title"><span>${tipo.toUpperCase()}</span> <span>Marcados: ${items.length}</span></div>`;
                     
+                    // Lista de marcados
                     items.forEach(r => {
                         html += `
                         <div class="row">
@@ -89,29 +97,47 @@
                             </div>
                         </div>`;
                     });
+
+                    // Lista de "Sin marca" por comas
+                    if(unmarkedUsers.length > 0) {
+                        const names = unmarkedUsers.map(u => u.name).join(", ");
+                        html += `
+                        <div class="no-data-section">
+                            <strong>Sin marca:</strong> ${names}
+                        </div>`;
+                    }
                     
                     html += `</div>`;
                     container.innerHTML += html;
                 }
             });
 
-            if(filtered.length === 0) container.innerHTML = "<p style='text-align:center; padding:20px;'>No hay pedidos para este día.</p>";
+            if(allRecords.length === 0 && allUsers.length === 0) {
+                container.innerHTML = "<p style='text-align:center; padding:20px;'>No hay datos disponibles.</p>";
+            }
         }
 
         function sendWhatsApp() {
             const date = document.getElementById('dateFilter').value;
             const filtered = allRecords.filter(r => new Date(r.date).toISOString().split('T')[0] === date);
-            if(filtered.length === 0) return alert("No hay datos para enviar");
+            if(filtered.length === 0 && allUsers.length === 0) return alert("No hay datos para enviar");
 
             let msg = `🍴 *RESUMEN COCINA - ${date}* \n\n`;
-            ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
+            ["Almuerzo", "Cena", "Desayuno"].forEach(tipo => {
                 const items = filtered.filter(r => r.type === tipo);
-                if(items.length > 0) {
-                    msg += `*${tipo.toUpperCase()}* (${items.length})\n`;
-                    items.forEach(r => {
-                        msg += `- ${r.user}: ${r.status}${r.blanda?' [BLANDA]':''}${r.bandeja?' [BANDEJA]':''}\n`;
-                        if(r.diet) msg += `  _Nota: ${r.diet}_\n`;
-                    });
+                const markedNames = items.map(i => i.user);
+                const unmarkedNames = allUsers.filter(u => !markedNames.includes(u.name)).map(u => u.name);
+
+                if(items.length > 0 || unmarkedNames.length > 0) {
+                    msg += `*${tipo.toUpperCase()}*\n`;
+                    if(items.length > 0) {
+                        items.forEach(r => {
+                            msg += `- ${r.user}: ${r.status}${r.blanda?' [B]':''}${r.bandeja?' [BED]':''}\n`;
+                        });
+                    }
+                    if(unmarkedNames.length > 0) {
+                        msg += `_Sin marca:_ ${unmarkedNames.join(", ")}\n`;
+                    }
                     msg += `\n`;
                 }
             });
@@ -119,10 +145,8 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
-        // Poner fecha de hoy por defecto
         document.getElementById('dateFilter').valueAsDate = new Date();
         fetchData();
-        // Recarga automática cada 5 minutos
         setInterval(fetchData, 300000);
     </script>
 </body>
