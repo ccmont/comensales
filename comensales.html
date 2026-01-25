@@ -30,9 +30,7 @@
         .date-day { font-size: 0.85rem; font-weight: 600; text-transform: lowercase; color: #64748b; }
         .opt-label { cursor: pointer; font-size: 1.7rem; display: flex; align-items: center; justify-content: center; opacity: 0.1; height: 38px; }
         .opt-label.active { opacity: 1; transform: scale(1.1); }
-        
         #adminPanel, #communityPanel, #userPanel { display: none; background: #1e293b; color: white; padding: 25px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 94%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); }
-        
         .panel-content { max-height: 50vh; overflow-y: auto; margin: 15px 0; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; }
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
         .main-btn { width:100%; padding:18px; border:none; border-radius:14px; cursor:pointer; font-size:1rem; font-weight:bold; color:white; }
@@ -56,29 +54,9 @@
         </div>
     </div>
 
-    <div id="userPanel">
-        <h3 id="userPanelTitle">Mi Resumen</h3>
-        <div id="userSummaryList" class="panel-content"></div>
-        <button onclick="sendUserSummaryWA()" class="main-btn bg-wa" style="margin-bottom:8px;">📱 Enviar WhatsApp</button>
-        <button onclick="document.getElementById('userPanel').style.display='none'" class="main-btn bg-sec">Cerrar</button>
-    </div>
-
-    <div id="communityPanel">
-        <h3>📅 Resumen General</h3>
-        <input type="date" id="comDate" style="width:100%; padding:12px; border-radius:8px; margin-bottom:10px;" onchange="refreshCommunity()">
-        <div id="comList" class="panel-content">Cargando...</div>
-        <button onclick="sendCommunityWA()" class="main-btn bg-wa" style="margin-bottom:8px;">📱 Enviar WhatsApp</button>
-        <button onclick="document.getElementById('communityPanel').style.display='none'" class="main-btn bg-sec">Cerrar</button>
-    </div>
-
-    <div id="adminPanel">
-        <h3>👥 Personas</h3>
-        <input type="text" id="newUserName" style="width:100%; padding:14px; border-radius:12px; margin-bottom:10px;" placeholder="Nombre">
-        <input type="text" id="newUserDiet" style="width:100%; padding:14px; border-radius:12px; margin-bottom:10px;" placeholder="Dieta">
-        <button onclick="addUser()" class="main-btn bg-p" style="margin-bottom:10px;">+ AÑADIR</button>
-        <div id="adminTable" class="panel-content"></div>
-        <button onclick="closeAdmin()" class="main-btn bg-sec">CERRAR</button>
-    </div>
+    <div id="userPanel"><h3 id="userPanelTitle"></h3><div id="userSummaryList" class="panel-content"></div><button onclick="sendUserSummaryWA()" class="main-btn bg-wa" style="margin-bottom:8px;">📱 Enviar WhatsApp</button><button onclick="document.getElementById('userPanel').style.display='none'" class="main-btn bg-sec">Cerrar</button></div>
+    <div id="communityPanel"><h3>📅 Resumen General</h3><input type="date" id="comDate" style="width:100%; padding:12px; border-radius:8px; margin-bottom:10px;" onchange="refreshCommunity()"><div id="comList" class="panel-content">Cargando...</div><button onclick="sendCommunityWA()" class="main-btn bg-wa" style="margin-bottom:8px;">📱 Enviar WhatsApp</button><button onclick="document.getElementById('communityPanel').style.display='none'" class="main-btn bg-sec">Cerrar</button></div>
+    <div id="adminPanel"><h3>👥 Personas</h3><input type="text" id="newUserName" style="width:100%; padding:14px; border-radius:12px; margin-bottom:10px;" placeholder="Nombre"><input type="text" id="newUserDiet" style="width:100%; padding:14px; border-radius:12px; margin-bottom:10px;" placeholder="Dieta"><button onclick="addUser()" class="main-btn bg-p" style="margin-bottom:10px;">+ AÑADIR</button><div id="adminTable" class="panel-content"></div><button onclick="closeAdmin()" class="main-btn bg-sec">CERRAR</button></div>
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8_MtLxPm3QOsyZO5_vluXrxb2vyJETntWT5yF2e8OBkWKn9W2WWjh-iL7ReuAl5fUnQ/exec";
@@ -132,13 +110,7 @@
                     </div>
                 </div>`;
             }
-
-            if(isCurrentMonth && todayRowId) {
-                setTimeout(() => {
-                    const row = document.getElementById(todayRowId);
-                    if(row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 100);
-            } else { list.scrollTop = 0; }
+            if(isCurrentMonth && todayRowId) { setTimeout(() => { document.getElementById(todayRowId)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100); }
         }
 
         async function syncFromCloud() {
@@ -147,23 +119,33 @@
             try {
                 const resp = await fetch(WEB_APP_URL);
                 allCloudData = await resp.json();
-                if(!user) { document.getElementById('loadingOverlay').style.display = "none"; return; }
-                const userRecords = allCloudData.filter(r => r.user === user);
+                
+                // Limpiar todo antes de pintar
                 document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText = "No"; b.className = "cycle-btn"; });
                 document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
 
+                if(!user) { document.getElementById('loadingOverlay').style.display = "none"; return; }
+
+                // Filtrar datos para el usuario seleccionado
+                const userRecords = allCloudData.filter(r => r.user === user);
+
                 userRecords.forEach(r => {
+                    // Normalizamos la fecha viniendo de Google Sheets (quitando la parte de la hora)
                     let rDate = new Date(r.date);
                     let key = `${rDate.getFullYear()}-${(rDate.getMonth()+1).toString().padStart(2,'0')}-${rDate.getDate().toString().padStart(2,'0')}`;
+                    
                     let row = document.getElementById(`row-${key}`);
                     if(row) {
                         let btn = row.querySelector(`[data-t="${r.type}"]`);
-                        if(btn) { btn.innerText = r.status; btn.className = "cycle-btn state-" + r.status.toLowerCase(); }
+                        if(btn) { 
+                            btn.innerText = r.status; 
+                            btn.className = "cycle-btn state-" + r.status.toLowerCase(); 
+                        }
                         if(r.blanda) row.querySelector('.db-check').parentElement.classList.add('active');
                         if(r.bandeja) row.querySelector('.bj-check').parentElement.classList.add('active');
                     }
                 });
-            } catch(e) { console.error("Error"); }
+            } catch(e) { console.error("Error sincronizando"); }
             document.getElementById('loadingOverlay').style.display = "none";
         }
 
@@ -191,83 +173,64 @@
             });
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(tempRecords) });
+                // En lugar de esperar 2 seg a ciegas, forzamos un aviso y refrescamos.
                 setTimeout(async () => {
                     await syncFromCloud();
                     btn.innerText = "💾 Guardar mis Cambios"; btn.disabled = false;
-                    alert("¡Datos guardados!");
-                }, 2000);
+                    alert("Cambios enviados a la nube.");
+                }, 1500);
             } catch (e) { alert("Error"); btn.disabled = false; btn.innerText = "💾 Guardar mis Cambios"; }
         }
 
-        // --- NUEVA FUNCIÓN MI RESUMEN EN PANTALLA ---
         function openUserSummary() {
             const name = document.getElementById('userDropdown').value;
             if(!name) return alert("Selecciona usuario");
-            const monthLabel = document.getElementById('mSelect').options[document.getElementById('mSelect').selectedIndex].text;
-            document.getElementById('userPanelTitle').innerText = `Resumen: ${name}`;
             const listDiv = document.getElementById('userSummaryList');
-            listDiv.innerHTML = "";
-            let hasData = false;
-
+            document.getElementById('userPanelTitle').innerText = `Resumen: ${name}`;
+            listDiv.innerHTML = ""; let hasData = false;
             document.querySelectorAll('.day-row:not(.past-row)').forEach(row => {
                 const day = row.querySelector('.date-num').innerText;
                 const dayName = row.querySelector('.date-day').innerText;
-                const entries = Array.from(row.querySelectorAll('.cycle-btn'))
-                                     .filter(b => b.innerText !== "No")
-                                     .map(b => `${b.dataset.t}: ${b.innerText}`);
-                
+                const entries = Array.from(row.querySelectorAll('.cycle-btn')).filter(b => b.innerText !== "No").map(b => `${b.dataset.t}: ${b.innerText}`);
                 const blanda = row.querySelector('.db-check').parentElement.classList.contains('active');
                 const bandeja = row.querySelector('.bj-check').parentElement.classList.contains('active');
-                
                 if(entries.length > 0) {
                     hasData = true;
                     let extras = (blanda ? " [🤢 Blanda]" : "") + (bandeja ? " [🛏️ Bandeja]" : "");
-                    listDiv.innerHTML += `<div style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size:0.9rem;">
-                        <strong>Día ${day} (${dayName}):</strong><br>
-                        <span style="color:var(--si)">${entries.join(', ')}</span> ${extras}
-                    </div>`;
+                    listDiv.innerHTML += `<div style="padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.1); font-size:0.9rem;"><strong>Día ${day} (${dayName}):</strong><br><span style="color:var(--si)">${entries.join(', ')}</span> ${extras}</div>`;
                 }
             });
-
-            if(!hasData) listDiv.innerHTML = "No tienes nada marcado para los próximos días.";
+            if(!hasData) listDiv.innerHTML = "No hay pedidos futuros.";
             document.getElementById('userPanel').style.display = 'block';
         }
 
         function sendUserSummaryWA() {
             const name = document.getElementById('userDropdown').value;
-            const monthLabel = document.getElementById('mSelect').options[document.getElementById('mSelect').selectedIndex].text;
-            let msg = `📝 *MI RESUMEN - ${name}*\n📅 *${monthLabel}*\n\n`;
+            let msg = `📝 *MI RESUMEN - ${name}*\n\n`;
             let hasData = false;
-            
             document.querySelectorAll('.day-row:not(.past-row)').forEach(row => {
                 const day = row.querySelector('.date-num').innerText;
                 const entries = Array.from(row.querySelectorAll('.cycle-btn')).filter(b => b.innerText !== "No").map(b => `${b.dataset.t}:${b.innerText}`);
-                const blanda = row.querySelector('.db-check').parentElement.classList.contains('active');
-                const bandeja = row.querySelector('.bj-check').parentElement.classList.contains('active');
-                
-                if(entries.length > 0) {
-                    hasData = true;
-                    let extra = (blanda ? " [🤢]" : "") + (bandeja ? " [🛏️]" : "");
-                    msg += `🔹 Día ${day}: ${entries.join(', ')}${extra}\n`;
+                if(entries.length > 0) { 
+                    hasData = true; 
+                    const blanda = row.querySelector('.db-check').parentElement.classList.contains('active');
+                    msg += `🔹 Día ${day}: ${entries.join(', ')}${blanda?' [B]':''}\n`; 
                 }
             });
-            if(!hasData) return alert("Nada marcado.");
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+            if(hasData) window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
-        async function openCommunity() { 
-            document.getElementById('communityPanel').style.display = 'block'; 
-            document.getElementById('comList').innerHTML = "Cargando...";
-            await syncFromCloud();
-            refreshCommunity();
-        }
-
+        async function openCommunity() { document.getElementById('communityPanel').style.display = 'block'; document.getElementById('comList').innerHTML = "Cargando..."; await syncFromCloud(); refreshCommunity(); }
         function refreshCommunity() {
             const dateInput = document.getElementById('comDate').value;
             const list = document.getElementById('comList'); list.innerHTML = "";
             if(!dateInput) return;
-            const daily = allCloudData.filter(r => new Date(r.date).toISOString().split('T')[0] === dateInput);
-            if(daily.length === 0) { list.innerHTML = "No hay registros."; return; }
+            const daily = allCloudData.filter(r => {
+                let rDate = new Date(r.date);
+                let formatted = `${rDate.getFullYear()}-${(rDate.getMonth()+1).toString().padStart(2,'0')}-${rDate.getDate().toString().padStart(2,'0')}`;
+                return formatted === dateInput;
+            });
+            if(daily.length === 0) { list.innerHTML = "Sin registros."; return; }
             ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
                 const f = daily.filter(r => r.type === tipo);
                 if(f.length > 0) {
@@ -279,16 +242,15 @@
 
         function sendCommunityWA() {
             const date = document.getElementById('comDate').value;
-            const daily = allCloudData.filter(r => new Date(r.date).toISOString().split('T')[0] === date);
-            if(daily.length === 0) return alert("Sin datos");
+            const daily = allCloudData.filter(r => {
+                let rDate = new Date(r.date);
+                let formatted = `${rDate.getFullYear()}-${(rDate.getMonth()+1).toString().padStart(2,'0')}-${rDate.getDate().toString().padStart(2,'0')}`;
+                return formatted === date;
+            });
             let msg = `🍴 *RESUMEN GRUPAL - ${date}*\n\n`;
             ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
                 const list = daily.filter(r => r.type === tipo);
-                if(list.length > 0) {
-                    msg += `*${tipo.toUpperCase()}* (${list.length})\n`;
-                    list.forEach(p => msg += `- ${p.user}: ${p.status}${p.blanda?' [B]':''}\n`);
-                    msg += `\n`;
-                }
+                if(list.length > 0) { msg += `*${tipo.toUpperCase()}* (${list.length})\n`; list.forEach(p => msg += `- ${p.user}: ${p.status}\n`); msg += `\n`; }
             });
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
@@ -299,9 +261,7 @@
             const n = document.getElementById('newUserName').value; const d = document.getElementById('newUserDiet').value;
             if(n) { users.push({name:n, diet:d}); localStorage.setItem('comedor_users', JSON.stringify(users)); renderAdminList(); updateUserDropdown(); }
         }
-        function renderAdminList() {
-            document.getElementById('adminTable').innerHTML = users.map((u,i) => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #444;">${u.name} <button onclick="users.splice(${i},1); localStorage.setItem('comedor_users', JSON.stringify(users)); renderAdminList();" style="color:red; background:none; border:none; font-weight:bold;">X</button></div>`).join('');
-        }
+        function renderAdminList() { document.getElementById('adminTable').innerHTML = users.map((u,i) => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #444;">${u.name} <button onclick="users.splice(${i},1); localStorage.setItem('comedor_users', JSON.stringify(users)); renderAdminList();" style="color:red; background:none; border:none; font-weight:bold;">X</button></div>`).join(''); }
         init();
     </script>
 </body>
