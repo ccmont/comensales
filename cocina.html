@@ -3,96 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <title>Cocina</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Cocina">
-    
-    <link rel="apple-touch-icon" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
-    <link rel="apple-touch-icon-precomposed" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
-    <link rel="icon" type="image/jpeg" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
-
+    <title>Cocina - Resumen</title>
     <style>
-        :root { --bg: #f8fafc; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --blanda: #f97316; --bandeja: #3b82f6; }
-        * { box-sizing: border-box; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
-        .card { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 500px; margin: auto; }
-        h2 { text-align: center; color: #1e293b; margin: 10px 0; }
-        input[type="date"] { width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 12px; border: 2px solid #e2e8f0; font-size: 1.1rem; font-weight: bold; }
-        .chef-section { border: 1px solid #eef2f6; border-radius: 15px; padding: 15px; margin-bottom: 20px; background: #fff; }
-        .chef-title { font-weight: 800; font-size: 1.2rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; }
-        .chef-name { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 5px; }
-        .badge { font-size: 0.8rem; padding: 6px 12px; border-radius: 8px; color: white; font-weight: bold; text-transform: uppercase; margin-right: 5px; display: inline-block; margin-top: 5px; }
-        .b-sí { background: var(--si); } .b-lonchera { background: var(--lonchera); } .b-tarde { background: var(--tarde); } .b-temprano { background: var(--temprano); }
-        .b-blanda { background: var(--blanda); } .b-bandeja { background: var(--bandeja); }
-        .diet-text { color: #92400e; font-weight: 700; font-size: 0.9rem; margin-top: 10px; background: #fffbeb; padding: 10px; border-radius: 8px; border-left: 5px solid #f59e0b; }
-        .wa-btn { background:#25d366; color:white; border:none; padding:18px; border-radius: 15px; width:100%; cursor:pointer; font-weight:bold; font-size: 1.1rem; margin-top: 10px; }
-        .refresh-btn { background: #f1f5f9; color: #475569; border: none; padding: 10px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; font-size: 0.9rem; }
+        :root { --bg: #f8fafc; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --p: #2563eb; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 600px; margin: auto; }
+        h2 { margin-top: 0; display: flex; justify-content: space-between; align-items: center; }
+        .filter-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        input[type="date"] { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1rem; }
+        .type-group { margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; }
+        .type-title { font-weight: bold; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f8fafc; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; color: white; margin-left: 5px; }
+        .b-sí { background: var(--si); }
+        .b-lonchera { background: var(--lonchera); }
+        .b-tarde { background: var(--tarde); }
+        .b-temprano { background: var(--temprano); }
+        .b-blanda { background: #ef4444; }
+        .b-bandeja { background: #6366f1; }
+        .diet-info { font-size: 0.8rem; color: #64748b; font-style: italic; display: block; }
+        .wa-btn { background: #25d366; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        #loading { text-align: center; color: var(--p); font-weight: bold; margin: 10px 0; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>👩‍🍳 Panel Cocina</h2>
-        <button class="refresh-btn" onclick="fetchData()">🔄 Sincronizar Ahora</button>
-        <input type="date" id="chefDateFilter" onchange="renderChef()">
-        <div id="chefView">Cargando...</div>
-        <button onclick="sendWhatsApp()" class="wa-btn">📱 Reporte WhatsApp</button>
+        <h2>Resumen Cocina</h2>
+        <div class="filter-box">
+            <input type="date" id="dateFilter" onchange="renderCocina()">
+            <button onclick="fetchData()" style="padding:10px; border-radius:8px; border:1px solid #ccc;">🔄</button>
+        </div>
+        <div id="loading">Cargando datos...</div>
+        <div id="content"></div>
+        <button class="wa-btn" onclick="sendWhatsApp()">📤 ENVIAR RESUMEN POR WHATSAPP</button>
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwM50uhwt3MdHJ4XZMJKIk9CrkRcHTmtqpO0DPdFSAvJb0ju3unX_51ey5LE4A9ydW-pg/exec";
+        // LA MISMA URL QUE EN COMENSALES
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyXXjk17cqkMYl3NVAvnJ3tomiETfcva0UFMquw2qPgL3TfgxxgZZB7Le1cStO2LFrF0A/exec";
+        
         let allRecords = [];
 
         async function fetchData() {
+            document.getElementById('loading').style.display = "block";
             try {
-                const response = await fetch(WEB_APP_URL);
-                allRecords = await response.json();
-                renderChef();
-            } catch (e) { document.getElementById('chefView').innerText = "Error de conexión"; }
+                const resp = await fetch(WEB_APP_URL);
+                const data = await resp.json();
+                allRecords = data.records || [];
+                renderCocina();
+            } catch(e) { console.error(e); }
+            document.getElementById('loading').style.display = "none";
         }
 
-        function renderChef() {
-            const filter = document.getElementById('chefDateFilter').value;
-            const view = document.getElementById('chefView'); view.innerHTML = "";
-            const daily = allRecords.filter(r => new Date(r.date).toISOString().split('T')[0] === filter);
-            if(daily.length === 0) { view.innerHTML = "<p style='text-align:center;'>No hay pedidos.</p>"; return; }
-            ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
-                const list = daily.filter(r => r.type === tipo);
-                if(list.length > 0) {
-                    let html = `<div class="chef-section"><div class="chef-title"><span>${tipo}</span> <span>${list.length}</span></div>`;
-                    list.forEach(p => {
-                        html += `<div style="padding:10px 0; border-bottom:1px solid #f8fafc;">
-                            <div class="chef-name">${p.user}</div>
-                            <span class="badge b-${p.status.toLowerCase()}">${p.status}</span>
-                            ${p.blanda ? '<span class="badge b-blanda">Blanda</span>' : ''}
-                            ${p.bandeja ? '<span class="badge b-bandeja">Bandeja</span>' : ''}
-                            ${p.diet ? `<div class="diet-text">⚠️ ${p.diet}</div>` : ''}
+        function renderCocina() {
+            const container = document.getElementById('content');
+            const selectedDate = document.getElementById('dateFilter').value;
+            container.innerHTML = "";
+            
+            if(!selectedDate) return;
+
+            const filtered = allRecords.filter(r => {
+                const rDate = new Date(r.date).toISOString().split('T')[0];
+                return rDate === selectedDate;
+            });
+
+            const tipos = ["Desayuno", "Almuerzo", "Cena"];
+            
+            tipos.forEach(tipo => {
+                const items = filtered.filter(r => r.type === tipo);
+                if(items.length > 0) {
+                    let html = `<div class="type-group">
+                        <div class="type-title"><span>${tipo.toUpperCase()}</span> <span>Total: ${items.length}</span></div>`;
+                    
+                    items.forEach(r => {
+                        html += `
+                        <div class="row">
+                            <div>
+                                <strong>${r.user}</strong>
+                                ${r.diet ? `<span class="diet-info">⚠️ ${r.diet}</span>` : ''}
+                            </div>
+                            <div>
+                                <span class="badge b-${r.status.toLowerCase()}">${r.status}</span>
+                                ${r.blanda ? '<span class="badge b-blanda">Blanda</span>' : ''}
+                                ${r.bandeja ? '<span class="badge b-bandeja">Bandeja</span>' : ''}
+                            </div>
                         </div>`;
                     });
-                    view.innerHTML += html + `</div>`;
+                    
+                    html += `</div>`;
+                    container.innerHTML += html;
                 }
             });
+
+            if(filtered.length === 0) container.innerHTML = "<p style='text-align:center; padding:20px;'>No hay pedidos para este día.</p>";
         }
 
         function sendWhatsApp() {
-            const date = document.getElementById('chefDateFilter').value;
-            const daily = allRecords.filter(r => new Date(r.date).toISOString().split('T')[0] === date);
-            if(daily.length === 0) return alert("Sin datos");
-            let msg = `🍴 *COCINA ${date}*\n\n`;
+            const date = document.getElementById('dateFilter').value;
+            const filtered = allRecords.filter(r => new Date(r.date).toISOString().split('T')[0] === date);
+            if(filtered.length === 0) return alert("No hay datos para enviar");
+
+            let msg = `🍴 *RESUMEN COCINA - ${date}* \n\n`;
             ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
-                const list = daily.filter(r => r.type === tipo);
-                if(list.length > 0) {
-                    msg += `*${tipo.toUpperCase()}* (${list.length})\n`;
-                    list.forEach(p => msg += `- ${p.user}: ${p.status}${p.blanda?' [B]':''}\n`);
+                const items = filtered.filter(r => r.type === tipo);
+                if(items.length > 0) {
+                    msg += `*${tipo.toUpperCase()}* (${items.length})\n`;
+                    items.forEach(r => {
+                        msg += `- ${r.user}: ${r.status}${r.blanda?' [BLANDA]':''}${r.bandeja?' [BANDEJA]':''}\n`;
+                        if(r.diet) msg += `  _Nota: ${r.diet}_\n`;
+                    });
                     msg += `\n`;
                 }
             });
+
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
-        document.getElementById('chefDateFilter').valueAsDate = new Date();
+
+        // Poner fecha de hoy por defecto
+        document.getElementById('dateFilter').valueAsDate = new Date();
         fetchData();
-        setInterval(fetchData, 60000);
+        // Recarga automática cada 5 minutos
+        setInterval(fetchData, 300000);
     </script>
 </body>
 </html>
