@@ -30,7 +30,6 @@
         .date-day { font-size: 0.85rem; font-weight: 600; text-transform: lowercase; color: #64748b; }
         .opt-label { cursor: pointer; font-size: 1.7rem; display: flex; align-items: center; justify-content: center; opacity: 0.1; height: 38px; }
         .opt-label.active { opacity: 1; transform: scale(1.1); }
-        
         #adminPanel, #communityPanel, #userPanel { display: none; background: #1e293b; color: white; padding: 25px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 94%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); }
         .panel-content { max-height: 50vh; overflow-y: auto; margin: 15px 0; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; }
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
@@ -46,7 +45,7 @@
             <select id="userDropdown" onchange="syncFromCloud()"></select>
             <select id="mSelect" onchange="render(); syncFromCloud();"></select>
         </div>
-        <div id="loadingOverlay">🔄 Sincronizando...</div>
+        <div id="loadingOverlay">🔄 Conectando...</div>
         <div id="calList" style="max-height: 60vh; overflow-y: auto; scroll-behavior: smooth;"></div>
         <button onclick="save()" class="main-btn bg-p" id="saveBtn" style="margin-top:15px;">💾 Guardar mis Cambios</button>
         <div class="btn-group">
@@ -55,29 +54,9 @@
         </div>
     </div>
 
-    <div id="userPanel">
-        <h3 id="userPanelTitle">Mi Resumen</h3>
-        <div id="userSummaryList" class="panel-content"></div>
-        <button onclick="sendUserSummaryWA()" class="main-btn bg-wa" style="margin-bottom:8px;">📱 Enviar WhatsApp</button>
-        <button onclick="document.getElementById('userPanel').style.display='none'" class="main-btn bg-sec">Cerrar</button>
-    </div>
-
-    <div id="communityPanel">
-        <h3>📅 Resumen General</h3>
-        <input type="date" id="comDate" style="width:100%; padding:12px; border-radius:8px; margin-bottom:10px;" onchange="refreshCommunity()">
-        <div id="comList" class="panel-content">Cargando...</div>
-        <button onclick="sendCommunityWA()" class="main-btn bg-wa" style="margin-bottom:8px;">📱 Enviar WhatsApp</button>
-        <button onclick="document.getElementById('communityPanel').style.display='none'" class="main-btn bg-sec">Cerrar</button>
-    </div>
-
-    <div id="adminPanel">
-        <h3>👥 Personas</h3>
-        <input type="text" id="newUserName" style="width:100%; padding:14px; border-radius:12px; margin-bottom:10px;" placeholder="Nombre">
-        <input type="text" id="newUserDiet" style="width:100%; padding:14px; border-radius:12px; margin-bottom:10px;" placeholder="Dieta">
-        <button onclick="addUser()" class="main-btn bg-p" style="margin-bottom:10px;">+ AÑADIR</button>
-        <div id="adminTable" class="panel-content"></div>
-        <button onclick="closeAdmin()" class="main-btn bg-sec">CERRAR</button>
-    </div>
+    <div id="userPanel"><h3 id="userPanelTitle"></h3><div id="userSummaryList" class="panel-content"></div><button onclick="sendUserSummaryWA()" class="main-btn bg-wa" style="margin-bottom:8px;">📱 Enviar WhatsApp</button><button onclick="document.getElementById('userPanel').style.display='none'" class="main-btn bg-sec">Cerrar</button></div>
+    <div id="communityPanel"><h3>📅 Resumen General</h3><input type="date" id="comDate" style="width:100%; padding:12px; border-radius:8px; margin-bottom:10px;" onchange="refreshCommunity()"><div id="comList" class="panel-content">Cargando...</div><button onclick="sendCommunityWA()" class="main-btn bg-wa" style="margin-bottom:8px;">📱 Enviar WhatsApp</button><button onclick="document.getElementById('communityPanel').style.display='none'" class="main-btn bg-sec">Cerrar</button></div>
+    <div id="adminPanel"><h3>👥 Personas</h3><input type="text" id="newUserName" style="width:100%; padding:14px; border-radius:12px; margin-bottom:10px;" placeholder="Nombre"><input type="text" id="newUserDiet" style="width:100%; padding:14px; border-radius:12px; margin-bottom:10px;" placeholder="Dieta"><button onclick="addUser()" class="main-btn bg-p" style="margin-bottom:10px;">+ AÑADIR</button><div id="adminTable" class="panel-content"></div><button onclick="closeAdmin()" class="main-btn bg-sec">CERRAR</button></div>
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8_MtLxPm3QOsyZO5_vluXrxb2vyJETntWT5yF2e8OBkWKn9W2WWjh-iL7ReuAl5fUnQ/exec";
@@ -131,41 +110,44 @@
                     </div>
                 </div>`;
             }
-            if(isCurrentMonth && todayRowId) { 
-                setTimeout(() => { document.getElementById(todayRowId)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200); 
-            }
+            if(isCurrentMonth && todayRowId) { setTimeout(() => { document.getElementById(todayRowId)?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 200); }
         }
 
         async function syncFromCloud() {
             const user = document.getElementById('userDropdown').value;
+            if(!user) return;
             document.getElementById('loadingOverlay').style.display = "block";
             try {
                 const resp = await fetch(WEB_APP_URL);
                 allCloudData = await resp.json();
                 
+                // Limpiar vista
                 document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText = "No"; b.className = "cycle-btn"; });
                 document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
 
-                if(!user) { document.getElementById('loadingOverlay').style.display = "none"; return; }
-                const userRecords = allCloudData.filter(r => r.user === user);
+                // Filtrar registros del usuario (Ignoramos mayúsculas/minúsculas en el nombre)
+                const userRecords = allCloudData.filter(r => r.user.toString().toLowerCase() === user.toLowerCase());
 
                 userRecords.forEach(r => {
-                    let dateStr = "";
-                    if (typeof r.date === 'string') { dateStr = r.date.split('T')[0]; }
-                    else {
-                        let d = new Date(r.date);
-                        dateStr = `${d.getUTCFullYear()}-${(d.getUTCMonth()+1).toString().padStart(2,'0')}-${d.getUTCDate().toString().padStart(2,'0')}`;
-                    }
+                    // EXTRACCIÓN DE FECHA SÚPER SEGURA
+                    let rawDate = r.date.toString();
+                    let cleanDate = rawDate.split('T')[0].substring(0,10); // Toma "YYYY-MM-DD"
                     
-                    let row = document.getElementById(`row-${dateStr}`);
+                    let row = document.getElementById(`row-${cleanDate}`);
                     if(row) {
                         let btn = row.querySelector(`[data-t="${r.type}"]`);
-                        if(btn) { btn.innerText = r.status; btn.className = "cycle-btn state-" + r.status.toLowerCase(); }
-                        if(r.blanda === true || r.blanda === "TRUE") row.querySelector('.db-check').parentElement.classList.add('active');
-                        if(r.bandeja === true || r.bandeja === "TRUE") row.querySelector('.bj-check').parentElement.classList.add('active');
+                        if(btn) { 
+                            btn.innerText = r.status; 
+                            btn.className = "cycle-btn state-" + r.status.toLowerCase(); 
+                        }
+                        // Soporte para TRUE, "TRUE", o marcar si existe
+                        let blandaVal = r.blanda || r.Blanda;
+                        let bandejaVal = r.bandeja || r.Bandeja;
+                        if(blandaVal === true || blandaVal === "TRUE") row.querySelector('.db-check').parentElement.classList.add('active');
+                        if(bandejaVal === true || bandejaVal === "TRUE") row.querySelector('.bj-check').parentElement.classList.add('active');
                     }
                 });
-            } catch(e) { console.error("Error sync"); }
+            } catch(e) { console.error("Error sync:", e); }
             document.getElementById('loadingOverlay').style.display = "none";
         }
 
@@ -196,7 +178,7 @@
                 setTimeout(async () => {
                     await syncFromCloud();
                     btn.innerText = "💾 Guardar mis Cambios"; btn.disabled = false;
-                    alert("¡Sincronizado con éxito!");
+                    alert("¡Sincronizado!");
                 }, 1500);
             } catch (e) { alert("Error"); btn.disabled = false; }
         }
@@ -205,21 +187,18 @@
             const name = document.getElementById('userDropdown').value;
             if(!name) return alert("Selecciona usuario");
             const listDiv = document.getElementById('userSummaryList');
-            document.getElementById('userPanelTitle').innerText = `Mi Resumen: ${name}`;
+            document.getElementById('userPanelTitle').innerText = `Resumen: ${name}`;
             listDiv.innerHTML = ""; let hasData = false;
             document.querySelectorAll('.day-row:not(.past-row)').forEach(row => {
                 const day = row.querySelector('.date-num').innerText;
-                const dayName = row.querySelector('.date-day').innerText;
                 const entries = Array.from(row.querySelectorAll('.cycle-btn')).filter(b => b.innerText !== "No").map(b => `${b.dataset.t}: ${b.innerText}`);
                 if(entries.length > 0) {
                     hasData = true;
                     const blanda = row.querySelector('.db-check').parentElement.classList.contains('active');
-                    const bandeja = row.querySelector('.bj-check').parentElement.classList.contains('active');
-                    let extras = (blanda ? " [Blanda]" : "") + (bandeja ? " [Bandeja]" : "");
-                    listDiv.innerHTML += `<div style="padding: 8px 0; border-bottom: 1px solid #444;">Día ${day} (${dayName}): <span style="color:var(--si)">${entries.join(', ')}</span>${extras}</div>`;
+                    listDiv.innerHTML += `<div style="padding: 8px 0; border-bottom: 1px solid #444;">Día ${day}: ${entries.join(', ')}${blanda?' [Blanda]':''}</div>`;
                 }
             });
-            if(!hasData) listDiv.innerHTML = "No hay pedidos marcados.";
+            if(!hasData) listDiv.innerHTML = "Sin registros futuros.";
             document.getElementById('userPanel').style.display = 'block';
         }
 
@@ -230,11 +209,7 @@
             document.querySelectorAll('.day-row:not(.past-row)').forEach(row => {
                 const day = row.querySelector('.date-num').innerText;
                 const entries = Array.from(row.querySelectorAll('.cycle-btn')).filter(b => b.innerText !== "No").map(b => `${b.dataset.t}:${b.innerText}`);
-                if(entries.length > 0) {
-                    hasData = true;
-                    const blanda = row.querySelector('.db-check').parentElement.classList.contains('active');
-                    msg += `🔹 Día ${day}: ${entries.join(', ')}${blanda?' [B]':''}\n`;
-                }
+                if(entries.length > 0) { hasData = true; msg += `🔹 Día ${day}: ${entries.join(', ')}\n`; }
             });
             if(hasData) window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
@@ -245,35 +220,24 @@
             const dateInput = document.getElementById('comDate').value;
             const list = document.getElementById('comList'); list.innerHTML = "";
             if(!dateInput) return;
-            const daily = allCloudData.filter(r => {
-                let d = new Date(r.date);
-                let formatted = `${d.getUTCFullYear()}-${(d.getUTCMonth()+1).toString().padStart(2,'0')}-${d.getUTCDate().toString().padStart(2,'0')}`;
-                return formatted === dateInput;
-            });
+            const daily = allCloudData.filter(r => r.date.toString().substring(0,10) === dateInput);
             if(daily.length === 0) { list.innerHTML = "Sin registros."; return; }
             ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
                 const f = daily.filter(r => r.type === tipo);
                 if(f.length > 0) {
                     list.innerHTML += `<div style="color:var(--si); font-weight:bold; margin-top:10px;">${tipo.toUpperCase()} (${f.length})</div>`;
-                    f.forEach(p => list.innerHTML += `<div style="font-size:0.85rem;">• ${p.user} (${p.status})${p.blanda?' [B]':''}</div>`);
+                    f.forEach(p => list.innerHTML += `<div style="font-size:0.85rem;">• ${p.user} (${p.status})</div>`);
                 }
             });
         }
 
         function sendCommunityWA() {
             const date = document.getElementById('comDate').value;
-            const daily = allCloudData.filter(r => {
-                let d = new Date(r.date);
-                return `${d.getUTCFullYear()}-${(d.getUTCMonth()+1).toString().padStart(2,'0')}-${d.getUTCDate().toString().padStart(2,'0')}` === date;
-            });
+            const daily = allCloudData.filter(r => r.date.toString().substring(0,10) === date);
             let msg = `🍴 *RESUMEN GRUPAL - ${date}*\n\n`;
             ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
                 const list = daily.filter(r => r.type === tipo);
-                if(list.length > 0) {
-                    msg += `*${tipo.toUpperCase()}* (${list.length})\n`;
-                    list.forEach(p => msg += `- ${p.user}: ${p.status}\n`);
-                    msg += `\n`;
-                }
+                if(list.length > 0) { msg += `*${tipo.toUpperCase()}* (${list.length})\n`; list.forEach(p => msg += `- ${p.user}: ${p.status}\n`); msg += `\n`; }
             });
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
