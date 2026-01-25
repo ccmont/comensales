@@ -44,7 +44,7 @@
             <select id="userDropdown" onchange="syncFromCloud()"></select>
             <select id="mSelect" onchange="render(); syncFromCloud();"></select>
         </div>
-        <div id="loadingOverlay">🔄 Sincronizando con la nube...</div>
+        <div id="loadingOverlay">🔄 Sincronizando selección...</div>
         <div id="calList" style="max-height: 60vh; overflow-y: auto;"></div>
         <button id="saveBtn" onclick="save()" style="width:100%; padding:18px; background:var(--p); color:white; border:none; border-radius:14px; margin-top:15px; cursor:pointer; font-size:1.1rem; font-weight:bold;">Guardar Cambios</button>
     </div>
@@ -156,8 +156,8 @@
             });
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(tempRecords) });
-                alert("¡Datos guardados con éxito!");
-            } catch (e) { alert("Error"); }
+                alert("¡Cambios guardados!");
+            } catch (e) { alert("Error al guardar"); }
             btn.innerText = "Guardar Cambios"; btn.disabled = false;
         }
 
