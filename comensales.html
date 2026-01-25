@@ -44,6 +44,7 @@
     <div id="adminPanel">
         <h3>Ajustes Usuarios</h3>
         <input type="text" id="newU" placeholder="Nombre" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px;">
+        <input type="text" id="newD" placeholder="Dieta (ej: Sin sal)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px;">
         <button onclick="addUser()" class="main-btn" style="background:var(--si);">+ AÑADIR</button>
         <div id="adminList" style="max-height:150px; overflow-y:auto; margin:10px 0;"></div>
         <button onclick="document.getElementById('adminPanel').style.display='none'" class="main-btn" style="background:#475569;">CERRAR</button>
@@ -51,11 +52,11 @@
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzCXFge8Cz9VRPsZpXH1kGm4TR8aigxWYVQd5vBceE8-E1dAfZ3JydqrcJCuqF3kkwYlg/exec";
+        // Estructura de usuarios ahora es objeto {name, diet}
         let users = JSON.parse(localStorage.getItem('comedor_users')) || [];
         const states = { D: ["No", "Sí", "Lonchera"], A: ["No", "Sí", "Tarde", "Temprano"], C: ["No", "Sí"] };
 
         function init() {
-            // 3. Menú de selección de mes dinámico (Actual y Siguiente)
             const mSelect = document.getElementById('mSelect');
             const now = new Date();
             for(let i=0; i<2; i++) {
@@ -68,7 +69,7 @@
 
         function updateUserDropdown() {
             const select = document.getElementById('userDropdown');
-            select.innerHTML = users.map(u => `<option value="${u}">${u}</option>`).join('') || '<option value="">Añade en ⚙️</option>';
+            select.innerHTML = users.map(u => `<option value="${u.name}">${u.name}</option>`).join('') || '<option value="">Añade en ⚙️</option>';
         }
 
         function render() {
@@ -77,15 +78,12 @@
             const total = new Date(y, m, 0).getDate();
             const now = new Date();
             const todayStr = now.toISOString().split('T')[0];
-            
             let targetScrollId = null;
 
             for(let i=1; i<=total; i++) {
                 let dateKey = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
                 let d = new Date(y, m-1, i);
                 let isToday = dateKey === todayStr;
-                
-                // 2. Lógica para el scroll automático
                 if(isToday) targetScrollId = `row-${dateKey}`;
 
                 list.innerHTML += `<div class="day-row ${isToday?'today-row':''}" id="row-${dateKey}">
@@ -101,29 +99,21 @@
                     </div>
                 </div>`;
             }
-
-            // Ejecutar scroll después de renderizar
             setTimeout(() => {
                 const el = document.getElementById(targetScrollId) || list.firstElementChild;
                 if(el) el.scrollIntoView({ block: 'center' });
             }, 300);
         }
 
-        function cycle(btn, type) {
-            let opts = states[type];
-            btn.innerText = opts[(opts.indexOf(btn.innerText) + 1) % opts.length];
-            btn.className = "cycle-btn " + (btn.innerText !== "No" ? "state-" + btn.innerText.toLowerCase() : "");
-        }
-
         async function syncFromCloud() {
-            const user = document.getElementById('userDropdown').value;
-            if(!user) return;
+            const userName = document.getElementById('userDropdown').value;
+            if(!userName) return;
+            resetUI(); // Limpiar antes de cargar el nuevo comensal
             document.getElementById('loadingOverlay').style.display = "block";
             try {
                 const resp = await fetch(WEB_APP_URL);
                 const data = await resp.json();
-                resetUI();
-                data.filter(r => r.user === user).forEach(r => {
+                data.filter(r => r.user === userName).forEach(r => {
                     let dateKey = new Date(r.date).toISOString().split('T')[0];
                     let row = document.getElementById(`row-${dateKey}`);
                     if(row) {
@@ -140,12 +130,18 @@
         function resetUI() {
             document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText = "No"; b.className = "cycle-btn"; });
             document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('input[type="checkbox"]').forEach(i => i.checked = false);
         }
 
         async function save() {
             const name = document.getElementById('userDropdown').value;
             const btn = document.getElementById('saveBtn');
             if(!name) return alert("Selecciona usuario");
+            
+            // Buscar la dieta del usuario actual
+            const currentUser = users.find(u => u.name === name);
+            const userDiet = currentUser ? (currentUser.diet || "") : "";
+
             btn.innerText = "⏳ Guardando..."; btn.disabled = true;
             let records = [];
             document.querySelectorAll('.day-row').forEach(row => {
@@ -154,7 +150,7 @@
                 const isBandeja = row.querySelector('.bj-check').parentElement.classList.contains('active');
                 row.querySelectorAll('.cycle-btn').forEach(b => {
                     if(b.innerText !== "No") {
-                        records.push({ user: name, date: date, type: b.dataset.t, status: b.innerText, blanda: isBlanda, bandeja: isBandeja, diet: "" });
+                        records.push({ user: name, date: date, type: b.dataset.t, status: b.innerText, blanda: isBlanda, bandeja: isBandeja, diet: userDiet });
                     }
                 });
             });
@@ -162,13 +158,29 @@
             setTimeout(() => { syncFromCloud(); btn.innerText = "💾 GUARDAR CAMBIOS"; btn.disabled = false; }, 1200);
         }
 
+        function cycle(btn, type) {
+            let opts = states[type];
+            btn.innerText = opts[(opts.indexOf(btn.innerText) + 1) % opts.length];
+            btn.className = "cycle-btn " + (btn.innerText !== "No" ? "state-" + btn.innerText.toLowerCase() : "");
+        }
+
         function openAdmin() { document.getElementById('adminPanel').style.display='block'; renderAdminList(); }
+        
         function addUser() {
             const n = document.getElementById('newU').value.trim();
-            if(n) { users.push(n); localStorage.setItem('comedor_users', JSON.stringify(users)); updateUserDropdown(); renderAdminList(); }
+            const d = document.getElementById('newD').value.trim();
+            if(n) { 
+                users.push({name: n, diet: d}); 
+                localStorage.setItem('comedor_users', JSON.stringify(users)); 
+                updateUserDropdown(); 
+                renderAdminList();
+                document.getElementById('newU').value = "";
+                document.getElementById('newD').value = "";
+            }
         }
+
         function renderAdminList() {
-            document.getElementById('adminList').innerHTML = users.map((u,i) => `<div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #444;">${u} <button onclick="users.splice(${i},1);localStorage.setItem('comedor_users',JSON.stringify(users));renderAdminList();updateUserDropdown();" style="color:red; background:none; border:none;">X</button></div>`).join('');
+            document.getElementById('adminList').innerHTML = users.map((u,i) => `<div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #444;"><span>${u.name} <small>(${u.diet || 'Sin dieta'})</small></span> <button onclick="users.splice(${i},1);localStorage.setItem('comedor_users',JSON.stringify(users));renderAdminList();updateUserDropdown();" style="color:red; background:none; border:none;">X</button></div>`).join('');
         }
 
         init();
