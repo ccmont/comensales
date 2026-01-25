@@ -2,147 +2,97 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Cocina</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <title>Cocina</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Cocina">
+    
+    <link rel="apple-touch-icon" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
+    <link rel="apple-touch-icon-precomposed" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
+    <link rel="icon" type="image/jpeg" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
+
     <style>
-        :root { --bg: #f1f5f9; --p: #1e293b; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
-        .container { max-width: 800px; margin: auto; }
-        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h1 { font-size: 1.5rem; color: var(--p); margin-top: 0; }
-        input[type="date"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1rem; margin-bottom: 15px; }
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .summary-box { padding: 15px; border-radius: 12px; color: white; text-align: center; }
-        .bg-d { background: #3b82f6; } .bg-a { background: #10b981; } .bg-c { background: #6366f1; }
-        .box-num { font-size: 2rem; font-weight: 800; display: block; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { text-align: left; padding: 12px; background: #f8fafc; color: #64748b; font-size: 0.85rem; text-transform: uppercase; }
-        td { padding: 12px; border-top: 1px solid #f1f5f9; font-size: 0.95rem; }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; color: white; }
-        .diet-badge { background: #ef4444; margin-left: 5px; }
+        :root { --bg: #f8fafc; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --blanda: #f97316; --bandeja: #3b82f6; }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
+        .card { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 500px; margin: auto; }
+        h2 { text-align: center; color: #1e293b; margin: 10px 0; }
+        input[type="date"] { width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 12px; border: 2px solid #e2e8f0; font-size: 1.1rem; font-weight: bold; }
+        .chef-section { border: 1px solid #eef2f6; border-radius: 15px; padding: 15px; margin-bottom: 20px; background: #fff; }
+        .chef-title { font-weight: 800; font-size: 1.2rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; }
+        .chef-name { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 5px; }
+        .badge { font-size: 0.8rem; padding: 6px 12px; border-radius: 8px; color: white; font-weight: bold; text-transform: uppercase; margin-right: 5px; display: inline-block; margin-top: 5px; }
+        .b-sí { background: var(--si); } .b-lonchera { background: var(--lonchera); } .b-tarde { background: var(--tarde); } .b-temprano { background: var(--temprano); }
+        .b-blanda { background: var(--blanda); } .b-bandeja { background: var(--bandeja); }
+        .diet-text { color: #92400e; font-weight: 700; font-size: 0.9rem; margin-top: 10px; background: #fffbeb; padding: 10px; border-radius: 8px; border-left: 5px solid #f59e0b; }
+        .wa-btn { background:#25d366; color:white; border:none; padding:18px; border-radius: 15px; width:100%; cursor:pointer; font-weight:bold; font-size: 1.1rem; margin-top: 10px; }
+        .refresh-btn { background: #f1f5f9; color: #475569; border: none; padding: 10px; border-radius: 10px; width: 100%; cursor: pointer; font-weight: bold; margin-bottom: 10px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <h1>🍳 Panel de Cocina</h1>
-            <input type="date" id="dateFilter" onchange="fetchData()">
-            
-            <div id="loading" style="display:none; text-align:center; padding:10px;">Cargando pedidos...</div>
-
-            <div class="summary-grid">
-                <div class="summary-box bg-d">
-                    <span class="box-num" id="totalD">0</span> Desayunos
-                </div>
-                <div class="summary-box bg-a">
-                    <span class="box-num" id="totalA">0</span> Almuerzos
-                </div>
-                <div class="summary-box bg-c">
-                    <span class="box-num" id="totalC">0</span> Cenas
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Detalle de Pedidos</h2>
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Comensal</th>
-                            <th>Servicio</th>
-                            <th>Estado / Opción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
-            </div>
-        </div>
+    <div class="card">
+        <h2>👩‍🍳 Panel Cocina</h2>
+        <button class="refresh-btn" onclick="fetchData()">🔄 Sincronizar Ahora</button>
+        <input type="date" id="chefDateFilter" onchange="renderChef()">
+        <div id="chefView">Cargando...</div>
+        <button onclick="sendWhatsApp()" class="wa-btn">📱 Reporte WhatsApp</button>
     </div>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbya27_mD5ZljhE-M1UX59Z3xLctAWu__3NlNLxrUK-a-eZLzMCYTuF67cyUdVbsVD8vsw/exec";
-
-        // Establecer fecha de hoy al iniciar
-        const dateInput = document.getElementById('dateFilter');
-        const today = new Date();
-        dateInput.value = today.toISOString().split('T')[0];
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzdz3s4TKPFVPQqiiIOTYRWX2sGE_6fXQO5xlmHykcKmEWcx-g8W06QS4NoxBdpuoH0/exec";
+        let allRecords = [];
 
         async function fetchData() {
-            const loading = document.getElementById('loading');
-            const targetDate = dateInput.value;
-            if(!targetDate) return;
-
-            loading.style.display = "block";
             try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
-                
-                // Filtrar datos por la fecha seleccionada
-                const filtered = data.filter(r => {
-                    const rDate = r.date.split('T')[0];
-                    return rDate === targetDate;
-                });
-
-                renderTable(filtered);
-                updateCounters(filtered);
-            } catch (e) {
-                console.error("Error cargando datos:", e);
-                alert("Error al conectar con el servidor.");
-            }
-            loading.style.display = "none";
+                const response = await fetch(WEB_APP_URL);
+                allRecords = await response.json();
+                renderChef();
+            } catch (e) { document.getElementById('chefView').innerText = "Error de conexión"; }
         }
 
-        function updateCounters(data) {
-            document.getElementById('totalD').innerText = data.filter(r => r.type === 'Desayuno').length;
-            document.getElementById('totalA').innerText = data.filter(r => r.type === 'Almuerzo').length;
-            document.getElementById('totalC').innerText = data.filter(r => r.type === 'Cena').length;
-        }
-
-        function renderTable(data) {
-            const body = document.getElementById('tableBody');
-            body.innerHTML = "";
-
-            if(data.length === 0) {
-                body.innerHTML = "<tr><td colspan='3' style='text-align:center;'>No hay pedidos para este día.</td></tr>";
-                return;
-            }
-
-            // Ordenar por Tipo de Servicio
-            const order = { "Desayuno": 1, "Almuerzo": 2, "Cena": 3 };
-            data.sort((a, b) => order[a.type] - order[b.type]);
-
-            data.forEach(r => {
-                const tr = document.createElement('tr');
-                const isBlanda = String(r.blanda).toUpperCase() === "TRUE";
-                
-                tr.innerHTML = `
-                    <td style="font-weight:bold;">${r.user}</td>
-                    <td>${r.type}</td>
-                    <td>
-                        <span class="badge" style="background:${getColor(r.status)}">${r.status}</span>
-                        ${isBlanda ? '<span class="badge diet-badge">🤢 DIETA</span>' : ''}
-                    </td>
-                `;
-                body.appendChild(tr);
+        function renderChef() {
+            const filter = document.getElementById('chefDateFilter').value;
+            const view = document.getElementById('chefView'); view.innerHTML = "";
+            const daily = allRecords.filter(r => new Date(r.date).toISOString().split('T')[0] === filter);
+            if(daily.length === 0) { view.innerHTML = "<p style='text-align:center;'>No hay pedidos.</p>"; return; }
+            ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
+                const list = daily.filter(r => r.type === tipo);
+                if(list.length > 0) {
+                    let html = `<div class="chef-section"><div class="chef-title"><span>${tipo}</span> <span>${list.length}</span></div>`;
+                    list.forEach(p => {
+                        html += `<div style="padding:10px 0; border-bottom:1px solid #f8fafc;">
+                            <div class="chef-name">${p.user}</div>
+                            <span class="badge b-${p.status.toLowerCase()}">${p.status}</span>
+                            ${p.blanda ? '<span class="badge b-blanda">Blanda</span>' : ''}
+                            ${p.bandeja ? '<span class="badge b-bandeja">Bandeja</span>' : ''}
+                            ${p.diet ? `<div class="diet-text">⚠️ ${p.diet}</div>` : ''}
+                        </div>`;
+                    });
+                    view.innerHTML += html + `</div>`;
+                }
             });
         }
 
-        function getColor(status) {
-            const colors = {
-                'Sí': '#22c55e',
-                'Lonchera': '#eab308',
-                'Tarde': '#a855f7',
-                'Temprano': '#06b6d4',
-                'No': '#64748b'
-            };
-            return colors[status] || '#64748b';
+        function sendWhatsApp() {
+            const date = document.getElementById('chefDateFilter').value;
+            const daily = allRecords.filter(r => new Date(r.date).toISOString().split('T')[0] === date);
+            if(daily.length === 0) return alert("Sin datos");
+            let msg = `🍴 *COCINA ${date}*\n\n`;
+            ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
+                const list = daily.filter(r => r.type === tipo);
+                if(list.length > 0) {
+                    msg += `*${tipo.toUpperCase()}* (${list.length})\n`;
+                    list.forEach(p => msg += `- ${p.user}: ${p.status}${p.blanda?' [B]':''}\n`);
+                    msg += `\n`;
+                }
+            });
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
-
-        // Carga inicial
+        document.getElementById('chefDateFilter').valueAsDate = new Date();
         fetchData();
-        // Recarga automática cada 5 minutos
-        setInterval(fetchData, 300000);
+        setInterval(fetchData, 60000);
     </script>
 </body>
 </html>
