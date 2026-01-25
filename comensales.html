@@ -11,21 +11,30 @@
         .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 500px; margin: auto; }
         h2 { font-size: 1.4rem; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
         .admin-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; }
+        
         select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.15rem; font-weight: bold; margin-bottom: 5px; background: white; }
+        
         .diet-display { font-size: 0.9rem; color: #64748b; margin-bottom: 10px; padding: 0 5px; font-weight: 500; }
         .diet-val { color: #ef4444; font-weight: bold; }
+
         .cycle-btn { border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; flex: 1; font-weight: 700; font-size: 0.75rem; background: white; height: 42px; color: #64748b; }
+        .cycle-btn:disabled { opacity: 0.5; border-style: dashed; cursor: not-allowed; }
+        
         .state-sí { background: var(--si) !important; color: white; border-color: var(--si); }
         .state-lonchera { background: var(--lonchera) !important; color: white; border-color: var(--lonchera); }
         .state-tarde { background: var(--tarde) !important; color: white; border-color: var(--tarde); }
         .state-temprano { background: var(--temprano) !important; color: white; border-color: var(--temprano); }
+        
         .day-row { display: grid; grid-template-columns: 75px 1fr 45px; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f1f5f9; gap: 8px; }
         .today-row { background: #eff6ff; border-left: 4px solid var(--p); }
         .past-row { background: #f1f5f9; opacity: 0.7; }
+        
         .date-num { font-size: 1.4rem; font-weight: 800; }
         .day-name { font-size: 0.95rem; font-weight: bold; text-transform: uppercase; color: #64748b; }
+        
         .opt-label { cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; opacity: 0.1; height: 35px; transition: 0.2s; }
         .opt-label.active { opacity: 1; transform: scale(1.1); }
+
         #loadingOverlay { display:none; text-align:center; color: var(--p); font-weight: bold; padding: 10px; font-size: 0.9rem; }
         .main-btn { width: 100%; padding: 16px; border: none; border-radius: 14px; cursor: pointer; font-size: 1rem; font-weight: bold; color: white; margin-top: 10px; }
         #adminPanel { display: none; background: #1e293b; color: white; padding: 25px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 94%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); }
@@ -39,8 +48,10 @@
             <select id="mSelect" onchange="render(); syncData();"></select>
         </div>
         <div class="diet-display" id="dietDisplay">Dieta: <span class="diet-val">-</span></div>
+
         <div id="loadingOverlay">🔄 Sincronizando...</div>
         <div id="calList" style="max-height: 50vh; overflow-y: auto; scroll-behavior: smooth; margin-top: 10px;"></div>
+        
         <button onclick="save()" class="main-btn" style="background:var(--p);" id="saveBtn">💾 GUARDAR CAMBIOS</button>
         <button onclick="window.location.href='cocina.html'" class="main-btn" style="background:#64748b; margin-top:5px; padding:12px;">RESUMEN</button>
     </div>
@@ -55,8 +66,14 @@
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxpP5dGg35RuTh_EQvdie6uM7XzbFbgEBqDMDsoisVyqfz5PkP9OPg71g0wmYSwa0rGLA/exec";
-        let allUsers = []; let allRecords = [];
-        const states = { A: ["ALM", "Sí", "Tarde", "Temprano"], C: ["CEN", "Sí"], D: ["DES", "Sí", "Lonchera"] };
+        
+        let allUsers = [];
+        let allRecords = [];
+        const states = { 
+            A: ["ALM", "Sí", "Tarde", "Temprano"], 
+            C: ["CEN", "Sí"], 
+            D: ["DES", "Sí", "Lonchera"] 
+        };
 
         async function init() {
             const mSelect = document.getElementById('mSelect');
@@ -65,7 +82,8 @@
                 let d = new Date(now.getFullYear(), now.getMonth() + i, 1);
                 mSelect.innerHTML += `<option value="${d.getFullYear()}-${d.getMonth()+1}">${d.toLocaleDateString('es',{month:'short',year:'numeric'}).toUpperCase()}</option>`;
             }
-            render(); await fetchFromCloud();
+            render();
+            await fetchFromCloud();
         }
 
         async function fetchFromCloud() {
@@ -73,10 +91,12 @@
             try {
                 const resp = await fetch(WEB_APP_URL);
                 const data = await resp.json();
-                allUsers = data.users || []; allRecords = data.records || [];
+                allUsers = data.users || [];
+                allRecords = data.records || [];
                 const select = document.getElementById('userDropdown');
                 select.innerHTML = allUsers.map(u => `<option value="${u.name}">${u.name}</option>`).join('') || '<option value="">Añade en ⚙️</option>';
-                const last = localStorage.getItem('last_user'); if(last) select.value = last;
+                const last = localStorage.getItem('last_user');
+                if(last) select.value = last;
                 updateUserUI();
             } catch(e) { console.error(e); }
             document.getElementById('loadingOverlay').style.display = "none";
@@ -85,19 +105,30 @@
         function updateUserUI() {
             const user = allUsers.find(u => u.name === document.getElementById('userDropdown').value);
             document.getElementById('dietDisplay').innerHTML = `Dieta: <span class="diet-val">${(user && user.diet) ? user.diet : 'Ninguna'}</span>`;
-            saveLastUser(); syncData();
+            saveLastUser();
+            syncData();
         }
 
         function render() {
             const list = document.getElementById('calList'); list.innerHTML = "";
             const [y, m] = document.getElementById('mSelect').value.split('-').map(Number);
-            const total = new Date(y, m, 0).getDate(); const hoy = new Date(); hoy.setHours(0,0,0,0);
+            const total = new Date(y, m, 0).getDate();
+            const hoy = new Date(); hoy.setHours(0,0,0,0);
+            
             let targetId = null;
+            const esMesActual = (hoy.getFullYear() === y && (hoy.getMonth() + 1) === m);
+
             for(let i=1; i<=total; i++) {
-                let d = new Date(y, m-1, i); let dateKey = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
-                let isPast = d < hoy; let isToday = dateKey === hoy.toISOString().split('T')[0];
-                if(isToday) targetId = `row-${dateKey}`;
-                list.innerHTML += `<div class="day-row ${isPast?'past-row':''} ${isToday?'today-row':''}" id="row-${dateKey}">
+                let d = new Date(y, m-1, i);
+                let dateKey = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
+                let isPast = d < hoy;
+                let isToday = dateKey === hoy.toISOString().split('T')[0];
+
+                if (esMesActual && isToday) targetId = `row-${dateKey}`;
+                if (!esMesActual && i === 1) targetId = `row-${dateKey}`;
+
+                list.innerHTML += `
+                <div class="day-row ${isPast?'past-row':''} ${isToday?'today-row':''}" id="row-${dateKey}">
                     <div><div class="date-num">${i}</div><div class="day-name">${d.toLocaleDateString('es',{weekday:'short'})}</div></div>
                     <div style="display:flex; gap:4px;">
                         <button class="cycle-btn" ${isPast?'disabled':''} onclick="cycle(this,'A')" data-t="Almuerzo">ALM</button>
@@ -110,23 +141,34 @@
                     </div>
                 </div>`;
             }
-            if(targetId) setTimeout(() => document.getElementById(targetId).scrollIntoView({block:'center'}), 400);
+            
+            if(targetId) {
+                setTimeout(() => {
+                    const el = document.getElementById(targetId);
+                    if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            }
         }
 
         function cycle(btn, type) {
             if(btn.disabled) return;
-            let opts = states[type]; let nextIdx = (opts.indexOf(btn.innerText) + 1) % opts.length;
+            let opts = states[type];
+            let nextIdx = (opts.indexOf(btn.innerText) + 1) % opts.length;
             btn.innerText = opts[nextIdx];
             btn.className = "cycle-btn" + (nextIdx !== 0 ? " state-" + btn.innerText.toLowerCase() : "");
         }
 
         function syncData() {
-            const user = document.getElementById('userDropdown').value; resetUI();
+            const user = document.getElementById('userDropdown').value;
+            resetUI();
             allRecords.filter(r => r.user === user).forEach(r => {
                 let row = document.getElementById(`row-${new Date(r.date).toISOString().split('T')[0]}`);
                 if(row) {
                     let btn = row.querySelector(`[data-t="${r.type}"]`);
-                    if(btn) { btn.innerText = r.status; btn.className = "cycle-btn state-" + r.status.toLowerCase(); }
+                    if(btn) { 
+                        btn.innerText = r.status; 
+                        btn.className = "cycle-btn state-" + r.status.toLowerCase(); 
+                    }
                     if(r.blanda) row.querySelector('.bl-check').parentElement.classList.add('active');
                     if(r.bandeja) row.querySelector('.bj-check').parentElement.classList.add('active');
                 }
@@ -134,19 +176,24 @@
         }
 
         async function save() {
-            const name = document.getElementById('userDropdown').value; if(!name) return;
+            const name = document.getElementById('userDropdown').value;
+            if(!name) return;
             const diet = allUsers.find(u => u.name === name)?.diet || "";
-            const btn = document.getElementById('saveBtn'); btn.innerText = "⏳ Guardando..."; btn.disabled = true;
+            const btn = document.getElementById('saveBtn');
+            btn.innerText = "⏳ Guardando..."; btn.disabled = true;
+            
             let records = [];
             document.querySelectorAll('.day-row').forEach(row => {
                 const date = row.id.replace('row-','');
                 const isBl = row.querySelector('.bl-check').parentElement.classList.contains('active');
                 const isBj = row.querySelector('.bj-check').parentElement.classList.contains('active');
                 row.querySelectorAll('.cycle-btn').forEach(b => {
-                    const statusVal = b.innerText; const esDef = Object.values(states).some(s => s[0] === statusVal);
+                    const statusVal = b.innerText;
+                    const esDef = Object.values(states).some(s => s[0] === statusVal);
                     records.push({user:name, date, type:b.dataset.t, status: esDef ? "No" : statusVal, blanda: esDef ? false : isBl, bandeja: esDef ? false : isBj, diet});
                 });
             });
+
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:"saveRecords", records}) });
                 setTimeout(() => { fetchFromCloud(); btn.innerText = "💾 GUARDAR CAMBIOS"; btn.disabled = false; }, 1200);
@@ -164,10 +211,13 @@
         }
 
         async function addUserCloud() {
-            const name = document.getElementById('newU').value.trim(); const diet = document.getElementById('newD').value.trim();
-            if(!name) return; await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:"addUser", name, diet}) });
+            const name = document.getElementById('newU').value.trim();
+            const diet = document.getElementById('newD').value.trim();
+            if(!name) return;
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:"addUser", name, diet}) });
             location.reload();
         }
+
         function openAdmin() { document.getElementById('adminPanel').style.display='block'; }
         function saveLastUser() { localStorage.setItem('last_user', document.getElementById('userDropdown').value); }
         init();
