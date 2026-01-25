@@ -8,10 +8,10 @@
         :root { --bg: #f8fafc; --p: #2563eb; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --wa: #25d366; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
-        .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 500px; margin: auto; }
+        .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 500px; margin: auto; position: relative; }
         h2 { font-size: 1.4rem; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
         .admin-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; }
-        .cycle-btn { border: 1px solid #cbd5e1; padding: 12px 2px; border-radius: 8px; cursor: pointer; flex: 1; font-weight: 700; font-size: 0.8rem; background: white; transition: 0.2s; height: 38px; }
+        .cycle-btn { border: 1px solid #cbd5e1; padding: 12px 2px; border-radius: 8px; cursor: pointer; flex: 1; font-weight: 700; font-size: 0.8rem; background: white; height: 38px; }
         .state-sí { background: var(--si) !important; color: white; border-color: var(--si); }
         .state-lonchera { background: var(--lonchera) !important; color: white; border-color: var(--lonchera); }
         .state-tarde { background: var(--tarde) !important; color: white; border-color: var(--tarde); }
@@ -24,33 +24,49 @@
         .opt-label.active { opacity: 1; transform: scale(1.1); }
         #loadingOverlay { display:none; text-align:center; color: var(--p); font-weight: bold; padding: 10px; }
         .main-btn { width: 100%; padding: 18px; border: none; border-radius: 14px; cursor: pointer; font-size: 1rem; font-weight: bold; color: white; margin-top: 10px; }
-        #adminPanel { display: none; background: #1e293b; color: white; padding: 25px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 94%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); }
-        .admin-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #444; }
+        
+        /* Paneles flotantes */
+        #adminPanel, #summaryPanel { display: none; background: #1e293b; color: white; padding: 25px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 94%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); }
+        .panel-content { max-height: 300px; overflow-y: auto; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-top: 10px; }
+        .res-item { border-bottom: 1px solid rgba(255,255,255,0.1); padding: 8px 0; font-size: 0.9rem; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Comensales <button onclick="openAdmin()" class="admin-btn">⚙️</button></h2>
+        <h2>Comensales 
+            <div>
+                <button onclick="openSummary()" style="background:none; border:none; font-size:1.4rem; cursor:pointer;">📅</button>
+                <button onclick="openAdmin()" class="admin-btn">⚙️</button>
+            </div>
+        </h2>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom: 15px;">
             <select id="userDropdown" onchange="syncFromCloud()" style="padding:12px; border-radius:10px; border:1px solid #cbd5e1;"></select>
             <select id="mSelect" onchange="render(); syncFromCloud();" style="padding:12px; border-radius:10px; border:1px solid #cbd5e1;"></select>
         </div>
         <div id="loadingOverlay">🔄 Sincronizando...</div>
-        <div id="calList" style="max-height: 60vh; overflow-y: auto;"></div>
+        <div id="calList" style="max-height: 55vh; overflow-y: auto; scroll-behavior: smooth;"></div>
         <button onclick="save()" class="main-btn" style="background:var(--p);" id="saveBtn">💾 GUARDAR CAMBIOS</button>
     </div>
 
     <div id="adminPanel">
-        <h3 style="margin-top:0;">Ajustes de Usuarios</h3>
-        <input type="text" id="newU" placeholder="Nombre (Ej: EMU)" style="width:100%; padding:14px; margin-bottom:10px; border-radius:10px; border:none;">
-        <button onclick="addUser()" class="main-btn" style="background:var(--si); margin-bottom:15px;">+ AÑADIR USUARIO</button>
-        <div id="adminList" style="max-height:180px; overflow-y:auto; background:rgba(255,255,255,0.05); border-radius:10px;"></div>
-        <button onclick="document.getElementById('adminPanel').style.display='none'" class="main-btn" style="background:#475569;">CERRAR</button>
+        <h3 style="margin-top:0;">Ajustes</h3>
+        <input type="text" id="newU" placeholder="Nombre" style="width:100%; padding:14px; margin-bottom:10px; border-radius:10px;">
+        <button onclick="addUser()" class="main-btn" style="background:var(--si);">+ AÑADIR</button>
+        <div id="adminList" class="panel-content"></div>
+        <button onclick="closePanel('adminPanel')" class="main-btn" style="background:#475569;">CERRAR</button>
+    </div>
+
+    <div id="summaryPanel">
+        <h3 style="margin-top:0;">Resumen General</h3>
+        <input type="date" id="sumDate" style="width:100%; padding:12px; border-radius:10px; border:none;" onchange="refreshSummary()">
+        <div id="sumList" class="panel-content">Selecciona una fecha...</div>
+        <button onclick="closePanel('summaryPanel')" class="main-btn" style="background:#475569;">CERRAR</button>
     </div>
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbya27_mD5ZljhE-M1UX59Z3xLctAWu__3NlNLxrUK-a-eZLzMCYTuF67cyUdVbsVD8vsw/exec";
         let users = JSON.parse(localStorage.getItem('comedor_users')) || [];
+        let cloudData = [];
         const states = { D: ["No", "Sí", "Lonchera"], A: ["No", "Sí", "Tarde", "Temprano"], C: ["No", "Sí"] };
 
         function init() {
@@ -60,6 +76,7 @@
                 let d = new Date(now.getFullYear(), now.getMonth() + i, 1);
                 mSelect.innerHTML += `<option value="${d.getFullYear()}-${d.getMonth()+1}">${d.toLocaleDateString('es',{month:'short', year:'numeric'}).toUpperCase()}</option>`;
             }
+            document.getElementById('sumDate').valueAsDate = new Date();
             updateUserDropdown(); render(); syncFromCloud();
         }
 
@@ -72,12 +89,16 @@
             const list = document.getElementById('calList'); list.innerHTML = "";
             const [y, m] = document.getElementById('mSelect').value.split('-').map(Number);
             const total = new Date(y, m, 0).getDate();
-            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            
+            let targetId = null;
 
             for(let i=1; i<=total; i++) {
                 let dateKey = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
                 let d = new Date(y, m-1, i);
-                let isToday = dateKey === today;
+                let isToday = dateKey === todayStr;
+                if(isToday) targetId = `row-${dateKey}`;
 
                 list.innerHTML += `<div class="day-row ${isToday?'today-row':''}" id="row-${dateKey}">
                     <div><div class="date-num">${i}</div><div class="date-day">${d.toLocaleDateString('es',{weekday:'short'})}</div></div>
@@ -89,6 +110,12 @@
                     <div class="opt-label" onclick="this.classList.toggle('active')">🤢</div>
                 </div>`;
             }
+
+            // Auto-scroll al día de hoy o al día 1
+            setTimeout(() => {
+                const el = document.getElementById(targetId) || list.firstElementChild;
+                if(el) el.scrollIntoView({ block: 'center' });
+            }, 100);
         }
 
         function cycle(btn, type) {
@@ -103,23 +130,20 @@
             document.getElementById('loadingOverlay').style.display = "block";
             try {
                 const resp = await fetch(WEB_APP_URL);
-                const data = await resp.json();
-                document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText = "No"; b.className = "cycle-btn"; b.classList.remove('state-sí','state-lonchera','state-tarde','state-temprano'); });
+                cloudData = await resp.json();
+                document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText = "No"; b.className = "cycle-btn"; });
                 document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
 
-                data.filter(r => r.user === user).forEach(r => {
+                cloudData.filter(r => r.user === user).forEach(r => {
                     let dateKey = r.date.split('T')[0];
                     let row = document.getElementById(`row-${dateKey}`);
                     if(row) {
                         let btn = row.querySelector(`[data-t="${r.type}"]`);
-                        if(btn) { 
-                            btn.innerText = r.status; 
-                            btn.classList.add("state-" + r.status.toLowerCase()); 
-                        }
+                        if(btn) { btn.innerText = r.status; btn.classList.add("state-" + r.status.toLowerCase()); }
                         if(String(r.blanda).toUpperCase() === "TRUE") row.querySelector('.opt-label').classList.add('active');
                     }
                 });
-            } catch(e) { console.error("Error sincronizando", e); }
+            } catch(e) { console.error(e); }
             document.getElementById('loadingOverlay').style.display = "none";
         }
 
@@ -138,19 +162,41 @@
                     }
                 });
             });
-            try {
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(tempRecords) });
-                setTimeout(() => { syncFromCloud(); btn.innerText = "💾 GUARDAR CAMBIOS"; btn.disabled = false; }, 1500);
-            } catch(e) { alert("Error al guardar"); btn.disabled = false; }
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(tempRecords) });
+            setTimeout(() => { syncFromCloud(); btn.innerText = "💾 GUARDAR CAMBIOS"; btn.disabled = false; }, 1500);
         }
 
         function openAdmin() { document.getElementById('adminPanel').style.display='block'; renderAdminList(); }
+        function openSummary() { document.getElementById('summaryPanel').style.display='block'; refreshSummary(); }
+        function closePanel(id) { document.getElementById(id).style.display='none'; }
+
         function addUser() {
             const n = document.getElementById('newU').value.trim();
             if(n) { users.push(n); localStorage.setItem('comedor_users', JSON.stringify(users)); updateUserDropdown(); renderAdminList(); document.getElementById('newU').value=""; }
         }
+
         function renderAdminList() {
-            document.getElementById('adminList').innerHTML = users.map((u,i) => `<div class="admin-item"><span>${u}</span> <button onclick="users.splice(${i},1);localStorage.setItem('comedor_users',JSON.stringify(users));renderAdminList();updateUserDropdown();" style="color:#f87171; background:none; border:none; font-weight:bold;">Eliminar</button></div>`).join('');
+            document.getElementById('adminList').innerHTML = users.map((u,i) => `<div style="display:flex; justify:space-between; padding:10px; border-bottom:1px solid #444;"><span>${u}</span> <button onclick="users.splice(${i},1);localStorage.setItem('comedor_users',JSON.stringify(users));renderAdminList();updateUserDropdown();" style="color:red; background:none; border:none;">Eliminar</button></div>`).join('');
+        }
+
+        function refreshSummary() {
+            const date = document.getElementById('sumDate').value;
+            const container = document.getElementById('sumList');
+            if(!date) return;
+            const filtered = cloudData.filter(r => r.date.split('T')[0] === date);
+            if(filtered.length === 0) { container.innerHTML = "Sin registros para hoy."; return; }
+            
+            let html = "";
+            ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
+                const p = filtered.filter(r => r.type === tipo);
+                if(p.length > 0) {
+                    html += `<div style="color:var(--si); font-weight:bold; margin-top:10px; border-bottom:1px solid #444;">${tipo.toUpperCase()}</div>`;
+                    p.forEach(r => {
+                        html += `<div class="res-item">• ${r.user}: ${r.status} ${String(r.blanda).toUpperCase()==='TRUE'?'(🤢)':''}</div>`;
+                    });
+                }
+            });
+            container.innerHTML = html || "Sin pedidos.";
         }
 
         init();
