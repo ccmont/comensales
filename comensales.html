@@ -51,8 +51,9 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzCXFge8Cz9VRPsZpXH1kGm4TR8aigxWYVQd5vBceE8-E1dAfZ3JydqrcJCuqF3kkwYlg/exec";
-        // Estructura de usuarios ahora es objeto {name, diet}
+        // URL ACTUALIZADA
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw6_0JIwErFJw7tdt4uymJrR4k3_W51hHsrj6mRK_8aKPmQBBMa9hGEhZG6HBI2zljQAA/exec";
+        
         let users = JSON.parse(localStorage.getItem('comedor_users')) || [];
         const states = { D: ["No", "Sí", "Lonchera"], A: ["No", "Sí", "Tarde", "Temprano"], C: ["No", "Sí"] };
 
@@ -108,7 +109,7 @@
         async function syncFromCloud() {
             const userName = document.getElementById('userDropdown').value;
             if(!userName) return;
-            resetUI(); // Limpiar antes de cargar el nuevo comensal
+            resetUI();
             document.getElementById('loadingOverlay').style.display = "block";
             try {
                 const resp = await fetch(WEB_APP_URL);
@@ -130,15 +131,13 @@
         function resetUI() {
             document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText = "No"; b.className = "cycle-btn"; });
             document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
-            document.querySelectorAll('input[type="checkbox"]').forEach(i => i.checked = false);
         }
 
         async function save() {
             const name = document.getElementById('userDropdown').value;
             const btn = document.getElementById('saveBtn');
-            if(!name) return alert("Selecciona usuario");
+            if(!name) return;
             
-            // Buscar la dieta del usuario actual
             const currentUser = users.find(u => u.name === name);
             const userDiet = currentUser ? (currentUser.diet || "") : "";
 
@@ -150,12 +149,26 @@
                 const isBandeja = row.querySelector('.bj-check').parentElement.classList.contains('active');
                 row.querySelectorAll('.cycle-btn').forEach(b => {
                     if(b.innerText !== "No") {
-                        records.push({ user: name, date: date, type: b.dataset.t, status: b.innerText, blanda: isBlanda, bandeja: isBandeja, diet: userDiet });
+                        records.push({ 
+                            user: name, 
+                            date: date, 
+                            type: b.dataset.t, 
+                            status: b.innerText, 
+                            blanda: isBlanda, 
+                            bandeja: isBandeja, 
+                            diet: userDiet 
+                        });
                     }
                 });
             });
-            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(records) });
-            setTimeout(() => { syncFromCloud(); btn.innerText = "💾 GUARDAR CAMBIOS"; btn.disabled = false; }, 1200);
+            
+            try {
+                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(records) });
+                setTimeout(() => { syncFromCloud(); btn.innerText = "💾 GUARDAR CAMBIOS"; btn.disabled = false; }, 1200);
+            } catch (e) {
+                alert("Error al guardar");
+                btn.disabled = false;
+            }
         }
 
         function cycle(btn, type) {
@@ -180,7 +193,7 @@
         }
 
         function renderAdminList() {
-            document.getElementById('adminList').innerHTML = users.map((u,i) => `<div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #444;"><span>${u.name} <small>(${u.diet || 'Sin dieta'})</small></span> <button onclick="users.splice(${i},1);localStorage.setItem('comedor_users',JSON.stringify(users));renderAdminList();updateUserDropdown();" style="color:red; background:none; border:none;">X</button></div>`).join('');
+            document.getElementById('adminList').innerHTML = users.map((u,i) => `<div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #444;"><span>${u.name}</span> <button onclick="users.splice(${i},1);localStorage.setItem('comedor_users',JSON.stringify(users));renderAdminList();updateUserDropdown();" style="color:red; background:none; border:none;">X</button></div>`).join('');
         }
 
         init();
