@@ -3,20 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <title>Comensales</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Comedor">
-    
     <link rel="apple-touch-icon" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
-    <link rel="apple-touch-icon-precomposed" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
     <link rel="icon" type="image/jpeg" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
 
     <style>
-        :root { --bg: #f8fafc; --p: #2563eb; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --blanda: #f97316; --bandeja: #3b82f6; }
+        :root { --bg: #f8fafc; --p: #2563eb; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --blanda: #f97316; --bandeja: #3b82f6; --wa: #25d366; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
         .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 500px; margin: auto; }
         h2 { font-size: 1.4rem; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
         .admin-btn { font-size: 1.8rem; background: none; border: none; cursor: pointer; }
@@ -26,14 +23,17 @@
         .state-lonchera { background: var(--lonchera) !important; color: white; border-color: var(--lonchera); }
         .state-tarde { background: var(--tarde) !important; color: white; border-color: var(--tarde); }
         .state-temprano { background: var(--temprano) !important; color: white; border-color: var(--temprano); }
-        .day-row { display: grid; grid-template-columns: 60px 1fr 45px; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f1f5f9; gap: 8px; }
+        .day-row { display: grid; grid-template-columns: 65px 1fr 45px; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f1f5f9; gap: 8px; }
         .past-row { background: #fcfcfc; color: #cbd5e1; }
-        .date-num { font-size: 1.4rem; font-weight: 800; }
+        .date-num { font-size: 1.4rem; font-weight: 800; line-height: 1; }
+        .date-day { font-size: 0.85rem; font-weight: 600; text-transform: lowercase; color: #64748b; }
         .opt-label { cursor: pointer; font-size: 1.7rem; display: flex; align-items: center; justify-content: center; opacity: 0.1; height: 38px; }
         .opt-label.active { opacity: 1; transform: scale(1.1); }
-        #adminPanel { display: none; background: #1e293b; color: white; padding: 25px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 94%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); }
-        .admin-input { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 1.1rem; margin-bottom: 10px; }
-        select { width: 100%; font-size: 1rem; padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0; background: white; }
+        #adminPanel, #communityPanel { display: none; background: #1e293b; color: white; padding: 25px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 94%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); }
+        .panel-content { max-height: 50vh; overflow-y: auto; margin: 15px 0; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .main-btn { width:100%; padding:18px; border:none; border-radius:14px; cursor:pointer; font-size:1rem; font-weight:bold; color:white; }
+        .bg-p { background: var(--p); } .bg-wa { background: var(--wa); } .bg-sec { background: #475569; }
         #loadingOverlay { display:none; text-align:center; color: var(--p); font-weight: bold; padding: 10px; font-size: 0.9rem; }
     </style>
 </head>
@@ -44,35 +44,49 @@
             <select id="userDropdown" onchange="syncFromCloud()"></select>
             <select id="mSelect" onchange="render(); syncFromCloud();"></select>
         </div>
-        <div id="loadingOverlay">🔄 Sincronizando selección...</div>
-        <div id="calList" style="max-height: 60vh; overflow-y: auto;"></div>
-        <button id="saveBtn" onclick="save()" style="width:100%; padding:18px; background:var(--p); color:white; border:none; border-radius:14px; margin-top:15px; cursor:pointer; font-size:1.1rem; font-weight:bold;">Guardar Cambios</button>
+        <div id="loadingOverlay">🔄 Sincronizando...</div>
+        <div id="calList" style="max-height: 50vh; overflow-y: auto;"></div>
+        <button onclick="save()" class="main-btn bg-p" id="saveBtn" style="margin-top:15px;">💾 Guardar mis Cambios</button>
+        <div class="btn-group">
+            <button onclick="sendUserSummary()" class="main-btn bg-wa" style="padding:14px; font-size:0.9rem;">📱 Mi Resumen</button>
+            <button onclick="openCommunity()" class="main-btn bg-sec" style="padding:14px; font-size:0.9rem;">🌐 Resumen Todos</button>
+        </div>
+    </div>
+
+    <div id="communityPanel">
+        <h3>📅 Resumen General</h3>
+        <input type="date" id="comDate" style="width:100%; padding:12px; border-radius:8px; margin-bottom:10px;" onchange="refreshCommunity()">
+        <div id="comList" class="panel-content">Cargando...</div>
+        <button onclick="sendCommunityWA()" class="main-btn bg-wa" style="margin-bottom:8px;">📱 Enviar WhatsApp</button>
+        <button onclick="document.getElementById('communityPanel').style.display='none'" class="main-btn bg-sec">Cerrar</button>
     </div>
 
     <div id="adminPanel">
         <h3>👥 Personas</h3>
-        <input type="text" id="newUserName" class="admin-input" placeholder="Nombre">
-        <input type="text" id="newUserDiet" class="admin-input" placeholder="Dieta">
-        <button onclick="addUser()" style="width:100%; background:var(--si); color:white; border:none; padding:18px; border-radius:12px; font-weight:bold; margin-bottom: 10px;">+ AÑADIR</button>
-        <div id="adminTable" style="max-height:30vh; overflow-y:auto; margin-bottom:10px;"></div>
-        <button onclick="closeAdmin()" style="width:100%; padding:15px; border-radius:12px; background:#334155; color:white; border:none;">CERRAR</button>
+        <input type="text" id="newUserName" style="width:100%; padding:14px; border-radius:12px; margin-bottom:10px;" placeholder="Nombre">
+        <input type="text" id="newUserDiet" style="width:100%; padding:14px; border-radius:12px; margin-bottom:10px;" placeholder="Dieta">
+        <button onclick="addUser()" class="main-btn bg-p" style="margin-bottom:10px;">+ AÑADIR</button>
+        <div id="adminTable" class="panel-content"></div>
+        <button onclick="closeAdmin()" class="main-btn bg-sec">CERRAR</button>
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8V8VSGCkXdWXy_XgKNcABG6-edPo7MeeHVPItu965zaON3fJQ84U5b134iDYRZpZeqg/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8_MtLxPm3QOsyZO5_vluXrxb2vyJETntWT5yF2e8OBkWKn9W2WWjh-iL7ReuAl5fUnQ/exec";
         let users = JSON.parse(localStorage.getItem('comedor_users')) || [];
+        let allCloudData = [];
         const states = { D: ["No", "Sí", "Lonchera"], A: ["No", "Sí", "Tarde", "Temprano"], C: ["No", "Sí"] };
 
         function init() {
             const mSelect = document.getElementById('mSelect');
             const now = new Date();
-            for(let i=0; i<3; i++) {
+            mSelect.innerHTML = "";
+            for(let i=0; i<2; i++) {
                 let d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-                mSelect.innerHTML += `<option value="${d.getFullYear()}-${d.getMonth()+1}">${d.toLocaleDateString('es', {month:'short'}).toUpperCase()}</option>`;
+                let mesCorto = d.toLocaleDateString('es', {month:'short'}).toUpperCase().substring(0,3);
+                mSelect.innerHTML += `<option value="${d.getFullYear()}-${d.getMonth()+1}">${mesCorto} ${d.getFullYear()}</option>`;
             }
-            updateUserDropdown(); 
-            render();
-            syncFromCloud();
+            document.getElementById('comDate').valueAsDate = new Date();
+            updateUserDropdown(); render(); syncFromCloud();
         }
 
         function updateUserDropdown() {
@@ -85,14 +99,12 @@
             const [y, m] = document.getElementById('mSelect').value.split('-').map(Number);
             const days = new Date(y, m, 0).getDate();
             const today = new Date(); today.setHours(0,0,0,0);
-
             for(let i=1; i<=days; i++) {
                 let d = new Date(y, m-1, i);
                 let isPast = d < today;
                 let key = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
-                
                 list.innerHTML += `<div class="day-row ${isPast?'past-row':''}" id="row-${key}">
-                    <div><div class="date-num">${i}</div><div style="font-size:0.7rem">${d.toLocaleDateString('es',{weekday:'short'})}</div></div>
+                    <div><div class="date-num">${i}</div><div class="date-day">${d.toLocaleDateString('es',{weekday:'short'})}</div></div>
                     <div style="display:flex; gap:4px; width:100%;">
                         <button class="cycle-btn" onclick="cycle(this,'D')" data-t="Desayuno" ${isPast?'disabled':''}>No</button>
                         <button class="cycle-btn" onclick="cycle(this,'A')" data-t="Almuerzo" ${isPast?'disabled':''}>No</button>
@@ -108,18 +120,16 @@
 
         async function syncFromCloud() {
             const user = document.getElementById('userDropdown').value;
-            if(!user) return;
             document.getElementById('loadingOverlay').style.display = "block";
             try {
                 const resp = await fetch(WEB_APP_URL);
-                const allData = await resp.json();
-                const userRecords = allData.filter(r => r.user === user);
+                allCloudData = await resp.json();
+                if(!user) { document.getElementById('loadingOverlay').style.display = "none"; return; }
+                const userRecords = allCloudData.filter(r => r.user === user);
                 document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText = "No"; b.className = "cycle-btn"; });
                 document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
-
                 userRecords.forEach(r => {
-                    let d = new Date(r.date);
-                    let key = d.toISOString().split('T')[0];
+                    let key = new Date(r.date).toISOString().split('T')[0];
                     let row = document.getElementById(`row-${key}`);
                     if(row) {
                         let btn = row.querySelector(`[data-t="${r.type}"]`);
@@ -128,8 +138,10 @@
                         if(r.bandeja) row.querySelector('.bj-check').parentElement.classList.add('active');
                     }
                 });
-            } catch(e) { console.error("Error sincronizando"); }
+            } catch(e) { console.error("Error"); }
             document.getElementById('loadingOverlay').style.display = "none";
+            // Si el panel de comunidad está abierto, refrescarlo con los nuevos datos
+            if(document.getElementById('communityPanel').style.display === 'block') refreshCommunity();
         }
 
         function cycle(btn, type) {
@@ -156,16 +168,75 @@
             });
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(tempRecords) });
-                alert("¡Cambios guardados!");
-            } catch (e) { alert("Error al guardar"); }
-            btn.innerText = "Guardar Cambios"; btn.disabled = false;
+                alert("¡Guardado!"); await syncFromCloud();
+            } catch (e) { alert("Error"); }
+            btn.innerText = "💾 Guardar mis Cambios"; btn.disabled = false;
+        }
+
+        async function openCommunity() { 
+            document.getElementById('communityPanel').style.display = 'block'; 
+            document.getElementById('comList').innerHTML = "Cargando datos frescos...";
+            await syncFromCloud(); // Forzar sincronización al abrir
+        }
+
+        function refreshCommunity() {
+            const dateInput = document.getElementById('comDate').value;
+            const list = document.getElementById('comList'); 
+            list.innerHTML = "";
+            if(!dateInput) return;
+            
+            // Filtrar comparando strings de fecha YYYY-MM-DD
+            const daily = allCloudData.filter(r => {
+                let rDate = new Date(r.date).toISOString().split('T')[0];
+                return rDate === dateInput;
+            });
+
+            if(daily.length === 0) { list.innerHTML = "No hay registros para este día."; return; }
+
+            ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
+                const f = daily.filter(r => r.type === tipo);
+                if(f.length > 0) {
+                    list.innerHTML += `<div style="color:var(--si); font-weight:bold; margin-top:10px;">${tipo.toUpperCase()} (${f.length})</div>`;
+                    f.forEach(p => list.innerHTML += `<div style="font-size:0.85rem; padding: 2px 0;">• ${p.user} (${p.status})${p.blanda?' [B]':''}</div>`);
+                }
+            });
+        }
+
+        function sendCommunityWA() {
+            const date = document.getElementById('comDate').value;
+            const daily = allCloudData.filter(r => new Date(r.date).toISOString().split('T')[0] === date);
+            if(daily.length === 0) return alert("Sin datos");
+            let msg = `🍴 *RESUMEN GRUPAL - ${date}*\n\n`;
+            ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
+                const list = daily.filter(r => r.type === tipo);
+                if(list.length > 0) {
+                    msg += `*${tipo.toUpperCase()}* (${list.length})\n`;
+                    list.forEach(p => msg += `- ${p.user}: ${p.status}${p.blanda?' [B]':''}\n`);
+                    msg += `\n`;
+                }
+            });
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+        }
+
+        function sendUserSummary() {
+            const name = document.getElementById('userDropdown').value;
+            const monthLabel = document.getElementById('mSelect').options[document.getElementById('mSelect').selectedIndex].text;
+            if(!name) return alert("Selecciona usuario");
+            let msg = `📝 *MI RESUMEN - ${name}*\n📅 *${monthLabel}*\n\n`;
+            let hasData = false;
+            document.querySelectorAll('.day-row:not(.past-row)').forEach(row => {
+                const day = row.querySelector('.date-num').innerText;
+                const entries = Array.from(row.querySelectorAll('.cycle-btn')).filter(b => b.innerText !== "No").map(b => `${b.dataset.t}:${b.innerText}`);
+                if(entries.length > 0) { hasData = true; msg += `🔹 Día ${day}: ${entries.join(', ')}\n`; }
+            });
+            if(!hasData) return alert("Nada marcado.");
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
         function checkAdmin() { if(prompt("Clave:") === "1234") { document.getElementById('adminPanel').style.display='block'; renderAdminList(); } }
         function closeAdmin() { document.getElementById('adminPanel').style.display='none'; }
         function addUser() {
-            const n = document.getElementById('newUserName').value;
-            const d = document.getElementById('newUserDiet').value;
+            const n = document.getElementById('newUserName').value; const d = document.getElementById('newUserDiet').value;
             if(n) { users.push({name:n, diet:d}); localStorage.setItem('comedor_users', JSON.stringify(users)); renderAdminList(); updateUserDropdown(); }
         }
         function renderAdminList() {
