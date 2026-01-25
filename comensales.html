@@ -3,133 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
     <title>Comensales</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Comedor">
-    
-    <link rel="apple-touch-icon" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
-    <link rel="apple-touch-icon-precomposed" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
-    <link rel="icon" type="image/jpeg" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
-
     <style>
-        :root { --bg: #f8fafc; --p: #2563eb; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --blanda: #f97316; --bandeja: #3b82f6; }
+        :root { --bg: #f8fafc; --p: #2563eb; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
         .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 500px; margin: auto; }
         h2 { font-size: 1.4rem; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .admin-btn { font-size: 1.8rem; background: none; border: none; cursor: pointer; }
-        .cycle-btn { border: 1px solid #cbd5e1; padding: 12px 2px; border-radius: 8px; cursor: pointer; flex: 1; min-width: 0; font-weight: 700; font-size: 0.8rem; background: white; transition: 0.2s; }
-        .cycle-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #f1f5f9; }
+        .admin-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; }
+        .cycle-btn { border: 1px solid #cbd5e1; padding: 12px 2px; border-radius: 8px; cursor: pointer; flex: 1; font-weight: 700; font-size: 0.8rem; background: white; height: 38px; }
         .state-sí { background: var(--si) !important; color: white; border-color: var(--si); }
         .state-lonchera { background: var(--lonchera) !important; color: white; border-color: var(--lonchera); }
         .state-tarde { background: var(--tarde) !important; color: white; border-color: var(--tarde); }
         .state-temprano { background: var(--temprano) !important; color: white; border-color: var(--temprano); }
-        .day-row { display: grid; grid-template-columns: 60px 1fr 45px; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f1f5f9; gap: 8px; }
-        .past-row { background: #fcfcfc; color: #cbd5e1; }
+        .day-row { display: grid; grid-template-columns: 65px 1fr 45px; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f1f5f9; gap: 8px; }
+        .today-row { background: #eff6ff; border-left: 4px solid var(--p); }
         .date-num { font-size: 1.4rem; font-weight: 800; }
-        .opt-label { cursor: pointer; font-size: 1.7rem; display: flex; align-items: center; justify-content: center; opacity: 0.1; height: 38px; }
+        .opt-label { cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; opacity: 0.1; height: 30px; }
         .opt-label.active { opacity: 1; transform: scale(1.1); }
+        #loadingOverlay { display:none; text-align:center; color: var(--p); font-weight: bold; padding: 10px; }
+        .main-btn { width: 100%; padding: 16px; border: none; border-radius: 14px; cursor: pointer; font-size: 1rem; font-weight: bold; color: white; margin-top: 10px; }
+        .secondary-btn { width: 100%; padding: 12px; background: #64748b; color: white; border: none; border-radius: 10px; font-weight: bold; margin-top: 5px; cursor: pointer; }
         #adminPanel { display: none; background: #1e293b; color: white; padding: 25px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 94%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); }
-        .admin-input { width: 100%; padding: 14px; border-radius: 12px; border: none; font-size: 1.1rem; margin-bottom: 10px; }
-        select { width: 100%; font-size: 1rem; padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0; background: white; }
-        #loadingOverlay { display:none; text-align:center; color: var(--p); font-weight: bold; padding: 10px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Comensales <button onclick="checkAdmin()" class="admin-btn">⚙️</button></h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom: 10px;">
-            <select id="userDropdown" onchange="syncFromCloud()"></select>
-            <select id="mSelect" onchange="render(); syncFromCloud();"></select>
+        <h2>Comensales <button onclick="openAdmin()" class="admin-btn">⚙️</button></h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom: 15px;">
+            <select id="userDropdown" onchange="syncFromCloud()" style="padding:10px; border-radius:8px;"></select>
+            <select id="mSelect" onchange="render(); syncFromCloud();" style="padding:10px; border-radius:8px;"></select>
         </div>
-        <div id="loadingOverlay">🔄 Sincronizando selección...</div>
-        <div id="calList" style="max-height: 60vh; overflow-y: auto;"></div>
-        <button id="saveBtn" onclick="save()" style="width:100%; padding:18px; background:var(--p); color:white; border:none; border-radius:14px; margin-top:15px; cursor:pointer; font-size:1.1rem; font-weight:bold;">Guardar Cambios</button>
+        <div id="loadingOverlay">🔄 Sincronizando...</div>
+        <div id="calList" style="max-height: 50vh; overflow-y: auto; scroll-behavior: smooth;"></div>
+        
+        <button onclick="save()" class="main-btn" style="background:var(--p);" id="saveBtn">💾 GUARDAR CAMBIOS</button>
+        <button onclick="window.location.href='https://ccmont.github.io/comensales/cocina.html'" class="secondary-btn">📊 RESUMEN GENERAL</button>
     </div>
 
     <div id="adminPanel">
-        <h3>👥 Personas</h3>
-        <input type="text" id="newUserName" class="admin-input" placeholder="Nombre">
-        <input type="text" id="newUserDiet" class="admin-input" placeholder="Dieta">
-        <button onclick="addUser()" style="width:100%; background:var(--si); color:white; border:none; padding:18px; border-radius:12px; font-weight:bold; margin-bottom: 10px;">+ AÑADIR</button>
-        <div id="adminTable" style="max-height:30vh; overflow-y:auto; margin-bottom:10px;"></div>
-        <button onclick="closeAdmin()" style="width:100%; padding:15px; border-radius:12px; background:#334155; color:white; border:none;">CERRAR</button>
+        <h3>Ajustes Usuarios</h3>
+        <input type="text" id="newU" placeholder="Nombre" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px;">
+        <button onclick="addUser()" class="main-btn" style="background:var(--si);">+ AÑADIR</button>
+        <div id="adminList" style="max-height:150px; overflow-y:auto; margin:10px 0;"></div>
+        <button onclick="document.getElementById('adminPanel').style.display='none'" class="main-btn" style="background:#475569;">CERRAR</button>
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzdz3s4TKPFVPQqiiIOTYRWX2sGE_6fXQO5xlmHykcKmEWcx-g8W06QS4NoxBdpuoH0/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzCXFge8Cz9VRPsZpXH1kGm4TR8aigxWYVQd5vBceE8-E1dAfZ3JydqrcJCuqF3kkwYlg/exec";
         let users = JSON.parse(localStorage.getItem('comedor_users')) || [];
         const states = { D: ["No", "Sí", "Lonchera"], A: ["No", "Sí", "Tarde", "Temprano"], C: ["No", "Sí"] };
 
         function init() {
+            // 3. Menú de selección de mes dinámico (Actual y Siguiente)
             const mSelect = document.getElementById('mSelect');
             const now = new Date();
-            for(let i=0; i<3; i++) {
+            for(let i=0; i<2; i++) {
                 let d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-                mSelect.innerHTML += `<option value="${d.getFullYear()}-${d.getMonth()+1}">${d.toLocaleDateString('es', {month:'short'}).toUpperCase()}</option>`;
+                let label = d.toLocaleDateString('es', {month: 'short', year: 'numeric'}).toUpperCase();
+                mSelect.innerHTML += `<option value="${d.getFullYear()}-${d.getMonth()+1}">${label}</option>`;
             }
-            updateUserDropdown(); 
-            render();
-            syncFromCloud();
+            updateUserDropdown(); render(); syncFromCloud();
         }
 
         function updateUserDropdown() {
             const select = document.getElementById('userDropdown');
-            select.innerHTML = users.map(u => `<option value="${u.name}">${u.name}</option>`).join('') || '<option value="">Configurar ⚙️</option>';
+            select.innerHTML = users.map(u => `<option value="${u}">${u}</option>`).join('') || '<option value="">Añade en ⚙️</option>';
         }
 
         function render() {
             const list = document.getElementById('calList'); list.innerHTML = "";
             const [y, m] = document.getElementById('mSelect').value.split('-').map(Number);
-            const days = new Date(y, m, 0).getDate();
-            const today = new Date(); today.setHours(0,0,0,0);
+            const total = new Date(y, m, 0).getDate();
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            
+            let targetScrollId = null;
 
-            for(let i=1; i<=days; i++) {
+            for(let i=1; i<=total; i++) {
+                let dateKey = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
                 let d = new Date(y, m-1, i);
-                let isPast = d < today;
-                let key = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
+                let isToday = dateKey === todayStr;
                 
-                list.innerHTML += `<div class="day-row ${isPast?'past-row':''}" id="row-${key}">
+                // 2. Lógica para el scroll automático
+                if(isToday) targetScrollId = `row-${dateKey}`;
+
+                list.innerHTML += `<div class="day-row ${isToday?'today-row':''}" id="row-${dateKey}">
                     <div><div class="date-num">${i}</div><div style="font-size:0.7rem">${d.toLocaleDateString('es',{weekday:'short'})}</div></div>
-                    <div style="display:flex; gap:4px; width:100%;">
-                        <button class="cycle-btn" onclick="cycle(this,'D')" data-t="Desayuno" ${isPast?'disabled':''}>No</button>
-                        <button class="cycle-btn" onclick="cycle(this,'A')" data-t="Almuerzo" ${isPast?'disabled':''}>No</button>
-                        <button class="cycle-btn" onclick="cycle(this,'C')" data-t="Cena" ${isPast?'disabled':''}>No</button>
+                    <div style="display:flex; gap:4px;">
+                        <button class="cycle-btn" onclick="cycle(this,'D')" data-t="Desayuno">No</button>
+                        <button class="cycle-btn" onclick="cycle(this,'A')" data-t="Almuerzo">No</button>
+                        <button class="cycle-btn" onclick="cycle(this,'C')" data-t="Cena">No</button>
                     </div>
-                    <div style="display:flex; flex-direction:column;">
-                        <label class="opt-label">🤢<input type="checkbox" style="display:none" class="db-check" onchange="this.parentElement.classList.toggle('active')" ${isPast?'disabled':''}></label>
-                        <label class="opt-label">🛏️<input type="checkbox" style="display:none" class="bj-check" onchange="this.parentElement.classList.toggle('active')" ${isPast?'disabled':''}></label>
+                    <div style="display:flex; flex-direction:column; gap:2px;">
+                        <label class="opt-label" title="Blanda">🤢<input type="checkbox" style="display:none" class="bl-check" onchange="this.parentElement.classList.toggle('active')"></label>
+                        <label class="opt-label" title="Bandeja">🛏️<input type="checkbox" style="display:none" class="bj-check" onchange="this.parentElement.classList.toggle('active')"></label>
                     </div>
                 </div>`;
             }
-        }
 
-        async function syncFromCloud() {
-            const user = document.getElementById('userDropdown').value;
-            if(!user) return;
-            document.getElementById('loadingOverlay').style.display = "block";
-            try {
-                const resp = await fetch(WEB_APP_URL);
-                const allData = await resp.json();
-                const userRecords = allData.filter(r => r.user === user);
-                document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText = "No"; b.className = "cycle-btn"; });
-                document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
-
-                userRecords.forEach(r => {
-                    let d = new Date(r.date);
-                    let key = d.toISOString().split('T')[0];
-                    let row = document.getElementById(`row-${key}`);
-                    if(row) {
-                        let btn = row.querySelector(`[data-t="${r.type}"]`);
-                        if(btn) { btn.innerText = r.status; btn.className = "cycle-btn state-" + r.status.toLowerCase(); }
-                        if(r.blanda) row.querySelector('.db-check').parentElement.classList.add('active');
-                        if(r.bandeja) row.querySelector('.bj-check').parentElement.classList.add('active');
-                    }
-                });
-            } catch(e) { console.error("Error sincronizando"); }
-            document.getElementById('loadingOverlay').style.display = "none";
+            // Ejecutar scroll después de renderizar
+            setTimeout(() => {
+                const el = document.getElementById(targetScrollId) || list.firstElementChild;
+                if(el) el.scrollIntoView({ block: 'center' });
+            }, 300);
         }
 
         function cycle(btn, type) {
@@ -138,39 +115,62 @@
             btn.className = "cycle-btn " + (btn.innerText !== "No" ? "state-" + btn.innerText.toLowerCase() : "");
         }
 
+        async function syncFromCloud() {
+            const user = document.getElementById('userDropdown').value;
+            if(!user) return;
+            document.getElementById('loadingOverlay').style.display = "block";
+            try {
+                const resp = await fetch(WEB_APP_URL);
+                const data = await resp.json();
+                resetUI();
+                data.filter(r => r.user === user).forEach(r => {
+                    let dateKey = new Date(r.date).toISOString().split('T')[0];
+                    let row = document.getElementById(`row-${dateKey}`);
+                    if(row) {
+                        let btn = row.querySelector(`[data-t="${r.type}"]`);
+                        if(btn) { btn.innerText = r.status; btn.className = "cycle-btn state-" + r.status.toLowerCase(); }
+                        if(r.blanda) row.querySelector('.bl-check').parentElement.classList.add('active');
+                        if(r.bandeja) row.querySelector('.bj-check').parentElement.classList.add('active');
+                    }
+                });
+            } catch(e) { console.error(e); }
+            document.getElementById('loadingOverlay').style.display = "none";
+        }
+
+        function resetUI() {
+            document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText = "No"; b.className = "cycle-btn"; });
+            document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
+        }
+
         async function save() {
             const name = document.getElementById('userDropdown').value;
             const btn = document.getElementById('saveBtn');
             if(!name) return alert("Selecciona usuario");
-            btn.innerText = "Guardando..."; btn.disabled = true;
-            let tempRecords = [];
-            document.querySelectorAll('.day-row:not(.past-row)').forEach(row => {
+            btn.innerText = "⏳ Guardando..."; btn.disabled = true;
+            let records = [];
+            document.querySelectorAll('.day-row').forEach(row => {
                 const date = row.id.replace('row-','');
-                const blanda = row.querySelector('.db-check').parentElement.classList.contains('active');
-                const bandeja = row.querySelector('.bj-check').parentElement.classList.contains('active');
+                const isBlanda = row.querySelector('.bl-check').parentElement.classList.contains('active');
+                const isBandeja = row.querySelector('.bj-check').parentElement.classList.contains('active');
                 row.querySelectorAll('.cycle-btn').forEach(b => {
                     if(b.innerText !== "No") {
-                        tempRecords.push({ user: name, date: date, type: b.dataset.t, status: b.innerText, blanda: blanda, bandeja: bandeja, diet: users.find(u => u.name === name)?.diet || "" });
+                        records.push({ user: name, date: date, type: b.dataset.t, status: b.innerText, blanda: isBlanda, bandeja: isBandeja, diet: "" });
                     }
                 });
             });
-            try {
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(tempRecords) });
-                alert("¡Cambios guardados!");
-            } catch (e) { alert("Error al guardar"); }
-            btn.innerText = "Guardar Cambios"; btn.disabled = false;
+            await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(records) });
+            setTimeout(() => { syncFromCloud(); btn.innerText = "💾 GUARDAR CAMBIOS"; btn.disabled = false; }, 1200);
         }
 
-        function checkAdmin() { if(prompt("Clave:") === "1234") { document.getElementById('adminPanel').style.display='block'; renderAdminList(); } }
-        function closeAdmin() { document.getElementById('adminPanel').style.display='none'; }
+        function openAdmin() { document.getElementById('adminPanel').style.display='block'; renderAdminList(); }
         function addUser() {
-            const n = document.getElementById('newUserName').value;
-            const d = document.getElementById('newUserDiet').value;
-            if(n) { users.push({name:n, diet:d}); localStorage.setItem('comedor_users', JSON.stringify(users)); renderAdminList(); updateUserDropdown(); }
+            const n = document.getElementById('newU').value.trim();
+            if(n) { users.push(n); localStorage.setItem('comedor_users', JSON.stringify(users)); updateUserDropdown(); renderAdminList(); }
         }
         function renderAdminList() {
-            document.getElementById('adminTable').innerHTML = users.map((u,i) => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #444;">${u.name} <button onclick="users.splice(${i},1); localStorage.setItem('comedor_users', JSON.stringify(users)); renderAdminList();" style="color:red; background:none; border:none; font-weight:bold;">X</button></div>`).join('');
+            document.getElementById('adminList').innerHTML = users.map((u,i) => `<div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #444;">${u} <button onclick="users.splice(${i},1);localStorage.setItem('comedor_users',JSON.stringify(users));renderAdminList();updateUserDropdown();" style="color:red; background:none; border:none;">X</button></div>`).join('');
         }
+
         init();
     </script>
 </body>
