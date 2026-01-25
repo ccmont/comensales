@@ -2,230 +2,147 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Comensales</title>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Comedor">
-    <link rel="apple-touch-icon" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
-    <link rel="icon" type="image/jpeg" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Cocina</title>
     <style>
-        :root { --bg: #f8fafc; --p: #2563eb; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --blanda: #f97316; --bandeja: #3b82f6; --wa: #25d366; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
-        .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 500px; margin: auto; }
-        h2 { font-size: 1.4rem; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .admin-btn { font-size: 1.8rem; background: none; border: none; cursor: pointer; }
-        .cycle-btn { border: 1px solid #cbd5e1; padding: 12px 2px; border-radius: 8px; cursor: pointer; flex: 1; min-width: 0; font-weight: 700; font-size: 0.8rem; background: white; transition: 0.2s; }
-        .cycle-btn:disabled { opacity: 0.4; cursor: not-allowed; background: #f1f5f9; }
-        .state-sí { background: var(--si) !important; color: white; border-color: var(--si); }
-        .state-lonchera { background: var(--lonchera) !important; color: white; border-color: var(--lonchera); }
-        .state-tarde { background: var(--tarde) !important; color: white; border-color: var(--tarde); }
-        .state-temprano { background: var(--temprano) !important; color: white; border-color: var(--temprano); }
-        .day-row { display: grid; grid-template-columns: 60px 1fr 45px; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f1f5f9; gap: 8px; }
-        .past-row { background: #fcfcfc; color: #cbd5e1; }
-        .date-num { font-size: 1.4rem; font-weight: 800; }
-        .opt-label { cursor: pointer; font-size: 1.7rem; display: flex; align-items: center; justify-content: center; opacity: 0.1; height: 38px; }
-        .opt-label.active { opacity: 1; transform: scale(1.1); }
-        #adminPanel, #communityPanel { display: none; background: #1e293b; color: white; padding: 25px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 94%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); }
-        .panel-content { max-height: 50vh; overflow-y: auto; margin: 15px 0; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; }
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .main-btn { width:100%; padding:18px; border:none; border-radius:14px; cursor:pointer; font-size:1rem; font-weight:bold; color:white; }
-        .bg-p { background: var(--p); } .bg-wa { background: var(--wa); } .bg-sec { background: #475569; }
-        #loadingOverlay { display:none; text-align:center; color: var(--p); font-weight: bold; padding: 10px; font-size: 0.9rem; }
+        :root { --bg: #f1f5f9; --p: #1e293b; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+        .container { max-width: 800px; margin: auto; }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { font-size: 1.5rem; color: var(--p); margin-top: 0; }
+        input[type="date"] { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1rem; margin-bottom: 15px; }
+        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .summary-box { padding: 15px; border-radius: 12px; color: white; text-align: center; }
+        .bg-d { background: #3b82f6; } .bg-a { background: #10b981; } .bg-c { background: #6366f1; }
+        .box-num { font-size: 2rem; font-weight: 800; display: block; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { text-align: left; padding: 12px; background: #f8fafc; color: #64748b; font-size: 0.85rem; text-transform: uppercase; }
+        td { padding: 12px; border-top: 1px solid #f1f5f9; font-size: 0.95rem; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; color: white; }
+        .diet-badge { background: #ef4444; margin-left: 5px; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>Comensales <button onclick="checkAdmin()" class="admin-btn">⚙️</button></h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom: 10px;">
-            <select id="userDropdown" onchange="syncFromCloud()"></select>
-            <select id="mSelect" onchange="render(); syncFromCloud();"></select>
-        </div>
-        <div id="loadingOverlay">🔄 Sincronizando...</div>
-        <div id="calList" style="max-height: 50vh; overflow-y: auto;"></div>
-        <button onclick="save()" class="main-btn bg-p" id="saveBtn" style="margin-top:15px;">💾 Guardar mis Cambios</button>
-        <div class="btn-group">
-            <button onclick="sendUserSummary()" class="main-btn bg-wa" style="padding:14px; font-size:0.9rem;">📱 Mi Resumen</button>
-            <button onclick="openCommunity()" class="main-btn bg-sec" style="padding:14px; font-size:0.9rem;">🌐 Resumen Todos</button>
-        </div>
-    </div>
+    <div class="container">
+        <div class="card">
+            <h1>🍳 Panel de Cocina</h1>
+            <input type="date" id="dateFilter" onchange="fetchData()">
+            
+            <div id="loading" style="display:none; text-align:center; padding:10px;">Cargando pedidos...</div>
 
-    <div id="communityPanel">
-        <h3>📅 Resumen General</h3>
-        <input type="date" id="comDate" style="width:100%; padding:12px; border-radius:8px; margin-bottom:10px;" onchange="refreshCommunity()">
-        <div id="comList" class="panel-content">Cargando...</div>
-        <button onclick="sendCommunityWA()" class="main-btn bg-wa" style="margin-bottom:8px;">📱 Enviar WhatsApp</button>
-        <button onclick="document.getElementById('communityPanel').style.display='none'" class="main-btn bg-sec">Cerrar</button>
-    </div>
+            <div class="summary-grid">
+                <div class="summary-box bg-d">
+                    <span class="box-num" id="totalD">0</span> Desayunos
+                </div>
+                <div class="summary-box bg-a">
+                    <span class="box-num" id="totalA">0</span> Almuerzos
+                </div>
+                <div class="summary-box bg-c">
+                    <span class="box-num" id="totalC">0</span> Cenas
+                </div>
+            </div>
+        </div>
 
-    <div id="adminPanel">
-        <h3>👥 Personas</h3>
-        <input type="text" id="newUserName" style="width:100%; padding:14px; border-radius:12px; margin-bottom:10px;" placeholder="Nombre">
-        <input type="text" id="newUserDiet" style="width:100%; padding:14px; border-radius:12px; margin-bottom:10px;" placeholder="Dieta">
-        <button onclick="addUser()" class="main-btn bg-p" style="margin-bottom:10px;">+ AÑADIR</button>
-        <div id="adminTable" class="panel-content"></div>
-        <button onclick="closeAdmin()" class="main-btn bg-sec">CERRAR</button>
+        <div class="card">
+            <h2>Detalle de Pedidos</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Comensal</th>
+                            <th>Servicio</th>
+                            <th>Estado / Opción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8_MtLxPm3QOsyZO5_vluXrxb2vyJETntWT5yF2e8OBkWKn9W2WWjh-iL7ReuAl5fUnQ/exec";
-        let users = JSON.parse(localStorage.getItem('comedor_users')) || [];
-        let allCloudData = [];
-        const states = { D: ["No", "Sí", "Lonchera"], A: ["No", "Sí", "Tarde", "Temprano"], C: ["No", "Sí"] };
+        const API_URL = "https://script.google.com/macros/s/AKfycbya27_mD5ZljhE-M1UX59Z3xLctAWu__3NlNLxrUK-a-eZLzMCYTuF67cyUdVbsVD8vsw/exec";
 
-        function init() {
-            const mSelect = document.getElementById('mSelect');
-            const now = new Date();
-            mSelect.innerHTML = "";
-            for(let i=0; i<2; i++) {
-                let d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-                let mesCorto = d.toLocaleDateString('es', {month:'short'}).toUpperCase().substring(0,3);
-                mSelect.innerHTML += `<option value="${d.getFullYear()}-${d.getMonth()+1}">${mesCorto} ${d.getFullYear()}</option>`;
-            }
-            document.getElementById('comDate').valueAsDate = new Date();
-            updateUserDropdown(); render(); syncFromCloud();
-        }
+        // Establecer fecha de hoy al iniciar
+        const dateInput = document.getElementById('dateFilter');
+        const today = new Date();
+        dateInput.value = today.toISOString().split('T')[0];
 
-        function updateUserDropdown() {
-            const select = document.getElementById('userDropdown');
-            select.innerHTML = users.map(u => `<option value="${u.name}">${u.name}</option>`).join('') || '<option value="">Configurar ⚙️</option>';
-        }
+        async function fetchData() {
+            const loading = document.getElementById('loading');
+            const targetDate = dateInput.value;
+            if(!targetDate) return;
 
-        function render() {
-            const list = document.getElementById('calList'); list.innerHTML = "";
-            const [y, m] = document.getElementById('mSelect').value.split('-').map(Number);
-            const days = new Date(y, m, 0).getDate();
-            const today = new Date(); today.setHours(0,0,0,0);
-            for(let i=1; i<=days; i++) {
-                let d = new Date(y, m-1, i);
-                let isPast = d < today;
-                let key = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
-                list.innerHTML += `<div class="day-row ${isPast?'past-row':''}" id="row-${key}">
-                    <div><div class="date-num">${i}</div><div style="font-size:0.7rem">${d.toLocaleDateString('es',{weekday:'short'})}</div></div>
-                    <div style="display:flex; gap:4px; width:100%;">
-                        <button class="cycle-btn" onclick="cycle(this,'D')" data-t="Desayuno" ${isPast?'disabled':''}>No</button>
-                        <button class="cycle-btn" onclick="cycle(this,'A')" data-t="Almuerzo" ${isPast?'disabled':''}>No</button>
-                        <button class="cycle-btn" onclick="cycle(this,'C')" data-t="Cena" ${isPast?'disabled':''}>No</button>
-                    </div>
-                    <div style="display:flex; flex-direction:column;">
-                        <label class="opt-label">🤢<input type="checkbox" style="display:none" class="db-check" onchange="this.parentElement.classList.toggle('active')" ${isPast?'disabled':''}></label>
-                        <label class="opt-label">🛏️<input type="checkbox" style="display:none" class="bj-check" onchange="this.parentElement.classList.toggle('active')" ${isPast?'disabled':''}></label>
-                    </div>
-                </div>`;
-            }
-        }
-
-        async function syncFromCloud() {
-            const user = document.getElementById('userDropdown').value;
-            document.getElementById('loadingOverlay').style.display = "block";
+            loading.style.display = "block";
             try {
-                const resp = await fetch(WEB_APP_URL);
-                allCloudData = await resp.json();
-                if(!user) return;
-                const userRecords = allCloudData.filter(r => r.user === user);
-                document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText = "No"; b.className = "cycle-btn"; });
-                document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
-                userRecords.forEach(r => {
-                    let key = new Date(r.date).toISOString().split('T')[0];
-                    let row = document.getElementById(`row-${key}`);
-                    if(row) {
-                        let btn = row.querySelector(`[data-t="${r.type}"]`);
-                        if(btn) { btn.innerText = r.status; btn.className = "cycle-btn state-" + r.status.toLowerCase(); }
-                        if(r.blanda) row.querySelector('.db-check').parentElement.classList.add('active');
-                        if(r.bandeja) row.querySelector('.bj-check').parentElement.classList.add('active');
-                    }
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                // Filtrar datos por la fecha seleccionada
+                const filtered = data.filter(r => {
+                    const rDate = r.date.split('T')[0];
+                    return rDate === targetDate;
                 });
-            } catch(e) { console.error("Error de carga"); }
-            document.getElementById('loadingOverlay').style.display = "none";
+
+                renderTable(filtered);
+                updateCounters(filtered);
+            } catch (e) {
+                console.error("Error cargando datos:", e);
+                alert("Error al conectar con el servidor.");
+            }
+            loading.style.display = "none";
         }
 
-        function cycle(btn, type) {
-            let opts = states[type];
-            btn.innerText = opts[(opts.indexOf(btn.innerText) + 1) % opts.length];
-            btn.className = "cycle-btn " + (btn.innerText !== "No" ? "state-" + btn.innerText.toLowerCase() : "");
+        function updateCounters(data) {
+            document.getElementById('totalD').innerText = data.filter(r => r.type === 'Desayuno').length;
+            document.getElementById('totalA').innerText = data.filter(r => r.type === 'Almuerzo').length;
+            document.getElementById('totalC').innerText = data.filter(r => r.type === 'Cena').length;
         }
 
-        async function save() {
-            const name = document.getElementById('userDropdown').value;
-            const btn = document.getElementById('saveBtn');
-            if(!name) return alert("Selecciona usuario");
-            btn.innerText = "Guardando..."; btn.disabled = true;
-            let tempRecords = [];
-            document.querySelectorAll('.day-row:not(.past-row)').forEach(row => {
-                const date = row.id.replace('row-','');
-                const blanda = row.querySelector('.db-check').parentElement.classList.contains('active');
-                const bandeja = row.querySelector('.bj-check').parentElement.classList.contains('active');
-                row.querySelectorAll('.cycle-btn').forEach(b => {
-                    if(b.innerText !== "No") {
-                        tempRecords.push({ user: name, date: date, type: b.dataset.t, status: b.innerText, blanda: blanda, bandeja: bandeja, diet: users.find(u => u.name === name)?.diet || "" });
-                    }
-                });
-            });
-            try {
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(tempRecords) });
-                alert("¡Guardado!"); syncFromCloud();
-            } catch (e) { alert("Error"); }
-            btn.innerText = "💾 Guardar mis Cambios"; btn.disabled = false;
-        }
+        function renderTable(data) {
+            const body = document.getElementById('tableBody');
+            body.innerHTML = "";
 
-        function openCommunity() { document.getElementById('communityPanel').style.display = 'block'; refreshCommunity(); }
-        function refreshCommunity() {
-            const date = document.getElementById('comDate').value;
-            const list = document.getElementById('comList'); list.innerHTML = "";
-            const daily = allCloudData.filter(r => new Date(r.date).toISOString().split('T')[0] === date);
-            if(daily.length === 0) { list.innerHTML = "Sin datos."; return; }
-            ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
-                const f = daily.filter(r => r.type === tipo);
-                if(f.length > 0) {
-                    list.innerHTML += `<div style="color:var(--si); font-weight:bold; margin-top:10px;">${tipo.toUpperCase()} (${f.length})</div>`;
-                    f.forEach(p => list.innerHTML += `<div style="font-size:0.8rem;">• ${p.user} (${p.status})${p.blanda?' [B]':''}</div>`);
-                }
+            if(data.length === 0) {
+                body.innerHTML = "<tr><td colspan='3' style='text-align:center;'>No hay pedidos para este día.</td></tr>";
+                return;
+            }
+
+            // Ordenar por Tipo de Servicio
+            const order = { "Desayuno": 1, "Almuerzo": 2, "Cena": 3 };
+            data.sort((a, b) => order[a.type] - order[b.type]);
+
+            data.forEach(r => {
+                const tr = document.createElement('tr');
+                const isBlanda = String(r.blanda).toUpperCase() === "TRUE";
+                
+                tr.innerHTML = `
+                    <td style="font-weight:bold;">${r.user}</td>
+                    <td>${r.type}</td>
+                    <td>
+                        <span class="badge" style="background:${getColor(r.status)}">${r.status}</span>
+                        ${isBlanda ? '<span class="badge diet-badge">🤢 DIETA</span>' : ''}
+                    </td>
+                `;
+                body.appendChild(tr);
             });
         }
 
-        function sendCommunityWA() {
-            const date = document.getElementById('comDate').value;
-            const daily = allCloudData.filter(r => new Date(r.date).toISOString().split('T')[0] === date);
-            if(daily.length === 0) return alert("Sin datos");
-            let msg = `🍴 *RESUMEN GRUPAL - ${date}*\n\n`;
-            ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
-                const list = daily.filter(r => r.type === tipo);
-                if(list.length > 0) {
-                    msg += `*${tipo.toUpperCase()}* (${list.length})\n`;
-                    list.forEach(p => msg += `- ${p.user}: ${p.status}${p.blanda?' [B]':''}\n`);
-                    msg += `\n`;
-                }
-            });
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+        function getColor(status) {
+            const colors = {
+                'Sí': '#22c55e',
+                'Lonchera': '#eab308',
+                'Tarde': '#a855f7',
+                'Temprano': '#06b6d4',
+                'No': '#64748b'
+            };
+            return colors[status] || '#64748b';
         }
 
-        function sendUserSummary() {
-            const name = document.getElementById('userDropdown').value;
-            const monthLabel = document.getElementById('mSelect').options[document.getElementById('mSelect').selectedIndex].text;
-            if(!name) return alert("Selecciona usuario");
-            let msg = `📝 *MI RESUMEN - ${name}*\n📅 *${monthLabel}*\n\n`;
-            let hasData = false;
-            document.querySelectorAll('.day-row:not(.past-row)').forEach(row => {
-                const day = row.querySelector('.date-num').innerText;
-                const entries = Array.from(row.querySelectorAll('.cycle-btn')).filter(b => b.innerText !== "No").map(b => `${b.dataset.t}:${b.innerText}`);
-                if(entries.length > 0) { hasData = true; msg += `🔹 Día ${day}: ${entries.join(', ')}\n`; }
-            });
-            if(!hasData) return alert("Nada marcado.");
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
-        }
-
-        function checkAdmin() { if(prompt("Clave:") === "1234") { document.getElementById('adminPanel').style.display='block'; renderAdminList(); } }
-        function closeAdmin() { document.getElementById('adminPanel').style.display='none'; }
-        function addUser() {
-            const n = document.getElementById('newUserName').value; const d = document.getElementById('newUserDiet').value;
-            if(n) { users.push({name:n, diet:d}); localStorage.setItem('comedor_users', JSON.stringify(users)); renderAdminList(); updateUserDropdown(); }
-        }
-        function renderAdminList() {
-            document.getElementById('adminTable').innerHTML = users.map((u,i) => `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #444;">${u.name} <button onclick="users.splice(${i},1); localStorage.setItem('comedor_users', JSON.stringify(users)); renderAdminList();" style="color:red; background:none; border:none; font-weight:bold;">X</button></div>`).join('');
-        }
-        init();
+        // Carga inicial
+        fetchData();
+        // Recarga automática cada 5 minutos
+        setInterval(fetchData, 300000);
     </script>
 </body>
 </html>
