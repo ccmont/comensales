@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Cocina</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://r.jina.ai/i/8994b18e-115d-48ac-a6a1-1543cc9b72a3-md.jpeg">
+
+    <style>
+        :root { --bg: #f8fafc; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --blanda: #f97316; --bandeja: #3b82f6; }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
+        .card { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 500px; margin: auto; }
+        h2 { text-align: center; color: #1e293b; margin: 10px 0; }
+        input[type="date"] { width: 100%; padding: 16px; margin-bottom: 15px; border-radius: 12px; border: 2px solid #e2e8f0; font-size: 1.1rem; font-weight: bold; }
+        .chef-section { border: 1px solid #eef2f6; border-radius: 15px; padding: 15px; margin-bottom: 20px; background: #fff; }
+        .chef-title { font-weight: 800; font-size: 1.2rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 12px; display: flex; justify-content: space-between; }
+        .chef-name { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin-bottom: 5px; }
+        .badge { font-size: 0.8rem; padding: 6px 12px; border-radius: 8px; color: white; font-weight: bold; text-transform: uppercase; margin-right: 5px; display: inline-block; margin-top: 5px; }
+        .b-sí { background: var(--si); } .b-lonchera { background: var(--lonchera); } .b-tarde { background: var(--tarde); } .b-temprano { background: var(--temprano); }
+        .b-blanda { background: var(--blanda); } .b-bandeja { background: var(--bandeja); }
+        .diet-text { color: #92400e; font-weight: 700; font-size: 0.9rem; margin-top: 10px; background: #fffbeb; padding: 10px; border-radius: 8px; border-left: 5px solid #f59e0b; }
+        .wa-btn { background:#25d366; color:white; border:none; padding:18px; border-radius: 15px; width:100%; cursor:pointer; font-weight:bold; font-size: 1.1rem; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>👩‍🍳 Panel Cocina</h2>
+        <input type="date" id="chefDateFilter" onchange="fetchData()">
+        <div id="chefView">Cargando...</div>
+        <button onclick="sendWhatsApp()" class="wa-btn">📱 Reporte WhatsApp</button>
+    </div>
+
+    <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz8V8VSGCkXdWXy_XgKNcABG6-edPo7MeeHVPItu965zaON3fJQ84U5b134iDYRZpZeqg/exec";
+        let allRecords = [];
+
+        async function fetchData() {
+            try {
+                const response = await fetch(WEB_APP_URL);
+                allRecords = await response.json();
+                renderChef();
+            } catch (e) { document.getElementById('chefView').innerText = "Error de conexión"; }
+        }
+
+        function renderChef() {
+            const filter = document.getElementById('chefDateFilter').value;
+            const view = document.getElementById('chefView'); view.innerHTML = "";
+            const daily = allRecords.filter(r => new Date(r.date).toISOString().split('T')[0] === filter);
+            
+            if(daily.length === 0) { view.innerHTML = "<p style='text-align:center;'>No hay pedidos.</p>"; return; }
+            
+            ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
+                const list = daily.filter(r => r.type === tipo);
+                if(list.length > 0) {
+                    let html = `<div class="chef-section"><div class="chef-title"><span>${tipo}</span> <span>${list.length}</span></div>`;
+                    list.forEach(p => {
+                        html += `<div style="padding:10px 0; border-bottom:1px solid #f8fafc;">
+                            <div class="chef-name">${p.user}</div>
+                            <span class="badge b-${p.status.toLowerCase()}">${p.status}</span>
+                            ${p.blanda ? '<span class="badge b-blanda">Blanda</span>' : ''}
+                            ${p.bandeja ? '<span class="badge b-bandeja">Bandeja</span>' : ''}
+                            ${p.diet ? `<div class="diet-text">⚠️ ${p.diet}</div>` : ''}
+                        </div>`;
+                    });
+                    view.innerHTML += html + `</div>`;
+                }
+            });
+        }
+
+        function sendWhatsApp() {
+            const date = document.getElementById('chefDateFilter').value;
+            const daily = allRecords.filter(r => new Date(r.date).toISOString().split('T')[0] === date);
+            if(daily.length === 0) return alert("Sin datos");
+            let msg = `🍴 *COCINA ${date}*\n\n`;
+            ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
+                const list = daily.filter(r => r.type === tipo);
+                if(list.length > 0) {
+                    msg += `*${tipo.toUpperCase()}* (${list.length})\n`;
+                    list.forEach(p => msg += `- ${p.user}: ${p.status}${p.blanda?' [B]':''}\n`);
+                    msg += `\n`;
+                }
+            });
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+        }
+        
+        document.getElementById('chefDateFilter').valueAsDate = new Date();
+        fetchData();
+        setInterval(fetchData, 60000);
+    </script>
+</body>
+</html>
