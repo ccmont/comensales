@@ -12,23 +12,23 @@
         h2 { font-size: 1.4rem; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
         .admin-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; }
         
-        /* FUENTES AGRANDADAS */
         select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.15rem; font-weight: bold; margin-bottom: 5px; background: white; }
         
-        .cycle-btn { border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; flex: 1; font-weight: 700; font-size: 0.8rem; background: white; height: 38px; }
+        .cycle-btn { border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; flex: 1; font-weight: 700; font-size: 0.75rem; background: white; height: 42px; color: #64748b; }
         .cycle-btn:disabled { opacity: 0.5; border-style: dashed; cursor: not-allowed; }
         
+        /* Estados activos con colores */
         .state-sí { background: var(--si) !important; color: white; border-color: var(--si); }
         .state-lonchera { background: var(--lonchera) !important; color: white; border-color: var(--lonchera); }
         .state-tarde { background: var(--tarde) !important; color: white; border-color: var(--tarde); }
         .state-temprano { background: var(--temprano) !important; color: white; border-color: var(--temprano); }
         
-        .day-row { display: grid; grid-template-columns: 80px 1fr 45px; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f1f5f9; gap: 8px; }
+        .day-row { display: grid; grid-template-columns: 75px 1fr 45px; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f1f5f9; gap: 8px; }
         .today-row { background: #eff6ff; border-left: 4px solid var(--p); }
         .past-row { background: #f1f5f9; opacity: 0.7; }
         
         .date-num { font-size: 1.4rem; font-weight: 800; }
-        .day-name { font-size: 0.95rem; font-weight: bold; text-transform: uppercase; color: #64748b; } /* Día semana más grande */
+        .day-name { font-size: 0.95rem; font-weight: bold; text-transform: uppercase; color: #64748b; }
         
         .opt-label { cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; opacity: 0.1; height: 35px; transition: 0.2s; }
         .opt-label.active { opacity: 1; transform: scale(1.1); }
@@ -46,7 +46,7 @@
             <select id="userDropdown" onchange="saveLastUser(); syncData();"></select>
             <select id="mSelect" onchange="render(); syncData();"></select>
         </div>
-        <div id="loadingOverlay">🔄 Sincronizando con la nube...</div>
+        <div id="loadingOverlay">🔄 Sincronizando...</div>
         <div id="calList" style="max-height: 50vh; overflow-y: auto; scroll-behavior: smooth; margin-top: 10px;"></div>
         
         <button onclick="save()" class="main-btn" style="background:var(--p);" id="saveBtn">💾 GUARDAR CAMBIOS</button>
@@ -55,7 +55,6 @@
 
     <div id="adminPanel">
         <h3>Nuevo Comensal</h3>
-        <p style="font-size: 0.8rem; color: #94a3b8;">Al añadirlo aquí, aparecerá en todos los dispositivos.</p>
         <input type="text" id="newU" placeholder="Nombre completo" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:none;">
         <input type="text" id="newD" placeholder="Dieta (ej: Sin sal)" style="width:100%; padding:12px; margin-bottom:10px; border-radius:8px; border:none;">
         <button onclick="addUserCloud()" class="main-btn" style="background:var(--si);" id="addUserBtn">+ REGISTRAR EN LA NUBE</button>
@@ -63,12 +62,17 @@
     </div>
 
     <script>
-        // URL ACTUALIZADA
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyXXjk17cqkMYl3NVAvnJ3tomiETfcva0UFMquw2qPgL3TfgxxgZZB7Le1cStO2LFrF0A/exec";
         
         let allUsers = [];
         let allRecords = [];
-        const states = { D: ["No", "Sí", "Lonchera"], A: ["No", "Sí", "Tarde", "Temprano"], C: ["No", "Sí"] };
+        
+        // El primer elemento del array es el "label" por defecto
+        const states = { 
+            A: ["ALM", "Sí", "Tarde", "Temprano"], 
+            C: ["CEN", "Sí"], 
+            D: ["DES", "Sí", "Lonchera"] 
+        };
 
         async function init() {
             const mSelect = document.getElementById('mSelect');
@@ -88,15 +92,12 @@
                 const data = await resp.json();
                 allUsers = data.users || [];
                 allRecords = data.records || [];
-                
                 const select = document.getElementById('userDropdown');
                 select.innerHTML = allUsers.map(u => `<option value="${u.name}">${u.name}</option>`).join('') || '<option value="">Añade en ⚙️</option>';
-                
                 const last = localStorage.getItem('last_user');
                 if(last) select.value = last;
-                
                 syncData();
-            } catch(e) { console.error("Error fetching:", e); }
+            } catch(e) { console.error(e); }
             document.getElementById('loadingOverlay').style.display = "none";
         }
 
@@ -112,9 +113,9 @@
                 let dateKey = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
                 let isPast = d < hoy;
                 let isToday = dateKey === hoy.toISOString().split('T')[0];
-                
                 if(isToday) targetId = `row-${dateKey}`;
 
+                // ORDEN CAMBIADO: Almuerzo (A), Cena (C), Desayuno (D)
                 list.innerHTML += `
                 <div class="day-row ${isPast?'past-row':''} ${isToday?'today-row':''}" id="row-${dateKey}">
                     <div>
@@ -122,9 +123,9 @@
                         <div class="day-name">${d.toLocaleDateString('es',{weekday:'short'})}</div>
                     </div>
                     <div style="display:flex; gap:4px;">
-                        <button class="cycle-btn" ${isPast?'disabled':''} onclick="cycle(this,'D')" data-t="Desayuno">No</button>
-                        <button class="cycle-btn" ${isPast?'disabled':''} onclick="cycle(this,'A')" data-t="Almuerzo">No</button>
-                        <button class="cycle-btn" ${isPast?'disabled':''} onclick="cycle(this,'C')" data-t="Cena">No</button>
+                        <button class="cycle-btn" ${isPast?'disabled':''} onclick="cycle(this,'A')" data-t="Almuerzo">ALM</button>
+                        <button class="cycle-btn" ${isPast?'disabled':''} onclick="cycle(this,'C')" data-t="Cena">CEN</button>
+                        <button class="cycle-btn" ${isPast?'disabled':''} onclick="cycle(this,'D')" data-t="Desayuno">DES</button>
                     </div>
                     <div style="display:flex; flex-direction:column; gap:2px;">
                         <label class="opt-label ${isPast?'disabled':''}" title="Blanda">🤢<input type="checkbox" style="display:none" class="bl-check" onchange="this.parentElement.classList.toggle('active')"></label>
@@ -135,6 +136,20 @@
             if(targetId) setTimeout(() => document.getElementById(targetId).scrollIntoView({block:'center'}), 400);
         }
 
+        function cycle(btn, type) {
+            if(btn.disabled) return;
+            let opts = states[type];
+            let nextIndex = (opts.indexOf(btn.innerText) + 1) % opts.length;
+            btn.innerText = opts[nextIndex];
+            
+            // Si no es el estado inicial (ALM, CEN, DES), poner color
+            if(nextIndex !== 0) {
+                btn.className = "cycle-btn state-" + btn.innerText.toLowerCase();
+            } else {
+                btn.className = "cycle-btn";
+            }
+        }
+
         function syncData() {
             const user = document.getElementById('userDropdown').value;
             resetUI();
@@ -142,25 +157,14 @@
                 let row = document.getElementById(`row-${new Date(r.date).toISOString().split('T')[0]}`);
                 if(row) {
                     let btn = row.querySelector(`[data-t="${r.type}"]`);
-                    if(btn) { btn.innerText = r.status; btn.className = "cycle-btn state-" + r.status.toLowerCase(); }
+                    if(btn) { 
+                        btn.innerText = r.status; 
+                        btn.className = "cycle-btn state-" + r.status.toLowerCase(); 
+                    }
                     if(r.blanda) row.querySelector('.bl-check').parentElement.classList.add('active');
                     if(r.bandeja) row.querySelector('.bj-check').parentElement.classList.add('active');
                 }
             });
-        }
-
-        async function addUserCloud() {
-            const name = document.getElementById('newU').value.trim();
-            const diet = document.getElementById('newD').value.trim();
-            if(!name) return alert("Escribe un nombre");
-            const btn = document.getElementById('addUserBtn');
-            btn.innerText = "⏳ REGISTRANDO..."; btn.disabled = true;
-            
-            try {
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:"addUser", name, diet}) });
-                alert("Usuario registrado. Se reiniciará la app.");
-                location.reload();
-            } catch(e) { alert("Error"); btn.disabled = false; btn.innerText = "+ REGISTRAR"; }
         }
 
         async function save() {
@@ -176,29 +180,43 @@
                 const isBl = row.querySelector('.bl-check').parentElement.classList.contains('active');
                 const isBj = row.querySelector('.bj-check').parentElement.classList.contains('active');
                 row.querySelectorAll('.cycle-btn').forEach(b => {
-                    if(b.innerText !== "No") records.push({user:name, date, type:b.dataset.t, status:b.innerText, blanda:isBl, bandeja:isBj, diet});
+                    // Solo guardamos si el estado NO es el inicial (ALM, CEN, DES)
+                    if(!Object.values(states).some(s => s[0] === b.innerText)) {
+                        records.push({user:name, date, type:b.dataset.t, status:b.innerText, blanda:isBl, bandeja:isBj, diet});
+                    }
                 });
             });
 
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:"saveRecords", records}) });
                 setTimeout(() => { fetchFromCloud(); btn.innerText = "💾 GUARDAR CAMBIOS"; btn.disabled = false; }, 1500);
-            } catch(e) { alert("Error al conectar"); btn.disabled = false; }
+            } catch(e) { alert("Error"); btn.disabled = false; }
         }
 
         function resetUI() {
-            document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText = "No"; b.className = "cycle-btn"; });
+            document.querySelectorAll('.day-row').forEach(row => {
+                row.querySelector('[data-t="Almuerzo"]').innerText = "ALM";
+                row.querySelector('[data-t="Cena"]').innerText = "CEN";
+                row.querySelector('[data-t="Desayuno"]').innerText = "DES";
+                row.querySelectorAll('.cycle-btn').forEach(b => b.className = "cycle-btn");
+            });
             document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
         }
-        function cycle(btn, type) {
-            if(btn.disabled) return;
-            let opts = states[type];
-            btn.innerText = opts[(opts.indexOf(btn.innerText) + 1) % opts.length];
-            btn.className = "cycle-btn state-" + btn.innerText.toLowerCase();
+
+        async function addUserCloud() {
+            const name = document.getElementById('newU').value.trim();
+            const diet = document.getElementById('newD').value.trim();
+            if(!name) return alert("Escribe un nombre");
+            const btn = document.getElementById('addUserBtn');
+            btn.innerText = "⏳ REGISTRANDO..."; btn.disabled = true;
+            try {
+                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:"addUser", name, diet}) });
+                location.reload();
+            } catch(e) { alert("Error"); btn.disabled = false; }
         }
+
         function openAdmin() { document.getElementById('adminPanel').style.display='block'; }
         function saveLastUser() { localStorage.setItem('last_user', document.getElementById('userDropdown').value); }
-
         init();
     </script>
 </body>
