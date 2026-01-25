@@ -16,21 +16,21 @@
         .state-temprano { background: #06b6d4 !important; color: white; }
         .opt-label { font-size: 1.5rem; opacity: 0.1; cursor: pointer; text-align: center; user-select: none; }
         .opt-label.active { opacity: 1; }
-        #userPanel, #communityPanel { display: none; background: #1e293b; color: white; padding: 20px; border-radius: 20px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 90%; max-width: 400px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.7); }
-        .panel-content { max-height: 250px; overflow-y: auto; margin-bottom: 15px; font-size: 0.9rem; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; }
-        .main-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        #userPanel, #communityPanel { display: none; background: #1e293b; color: white; padding: 20px; border-radius: 24px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 92%; max-width: 420px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.7); }
+        .panel-content { max-height: 280px; overflow-y: auto; margin: 15px 0; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 14px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1); }
+        .main-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 1rem; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 5px; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Comensales <button onclick="addU()" style="float:right; background:none; border:none; font-size:1.2rem;">⚙️</button></h2>
+        <h2>Comensales <button onclick="addU()" style="float:right; background:none; border:none; font-size:1.4rem; cursor:pointer;">⚙️</button></h2>
         <div style="display:flex; gap:10px; margin-bottom:15px;">
-            <select id="uSel" style="flex:1; padding:10px; border-radius:8px;" onchange="sync()"></select>
-            <select id="mSel" style="flex:1; padding:10px; border-radius:8px;" onchange="render(); sync();"></select>
+            <select id="uSel" style="flex:1; padding:12px; border-radius:10px; border:1px solid #cbd5e1;" onchange="sync()"></select>
+            <select id="mSel" style="flex:1; padding:12px; border-radius:10px; border:1px solid #cbd5e1;" onchange="render(); sync();"></select>
         </div>
-        <div id="loading" style="display:none; text-align:center; color:var(--p); font-weight:bold; padding:5px;">🔄 Sincronizando...</div>
-        <div id="list" style="max-height: 50vh; overflow-y: auto;"></div>
+        <div id="loading" style="display:none; text-align:center; color:var(--p); font-weight:bold; padding:10px;">🔄 Sincronizando datos...</div>
+        <div id="list" style="max-height: 52vh; overflow-y: auto;"></div>
         
         <button onclick="save()" id="sBtn" class="main-btn" style="background:var(--p); color:white;">💾 GUARDAR CAMBIOS</button>
         
@@ -41,17 +41,17 @@
     </div>
 
     <div id="userPanel">
-        <h3 id="uResTitle">Tu Resumen</h3>
+        <h3 id="uResTitle" style="margin-top:0;">Tu Resumen</h3>
         <div id="uResList" class="panel-content"></div>
-        <button onclick="sendWA()" class="main-btn" style="background:var(--wa); color:white;">ENVIAR WHATSAPP</button>
-        <button onclick="closeP('userPanel')" class="main-btn" style="background:#666; color:white;">CERRAR</button>
+        <button onclick="sendWA()" class="main-btn" style="background:var(--wa); color:white;">ENVIAR POR WHATSAPP</button>
+        <button onclick="closeP('userPanel')" class="main-btn" style="background:#64748b; color:white;">CERRAR</button>
     </div>
 
     <div id="communityPanel">
-        <h3>📅 Resumen General</h3>
-        <input type="date" id="comDate" style="width:100%; padding:10px; border-radius:8px; margin-bottom:10px;" onchange="refreshCommunity()">
-        <div id="comList" class="panel-content">Selecciona una fecha...</div>
-        <button onclick="closeP('communityPanel')" class="main-btn" style="background:#666; color:white;">CERRAR</button>
+        <h3 style="margin-top:0;">📅 Resumen General</h3>
+        <input type="date" id="comDate" style="width:100%; padding:12px; border-radius:10px; border:none; margin-bottom:10px;" onchange="refreshCommunity()">
+        <div id="comList" class="panel-content">Cargando datos...</div>
+        <button onclick="closeP('communityPanel')" class="main-btn" style="background:#64748b; color:white;">CERRAR</button>
     </div>
 
     <script>
@@ -74,11 +74,11 @@
         function refreshU() {
             const sel = document.getElementById('uSel');
             sel.innerHTML = users.map(u => `<option value="${u}">${u}</option>`).join('');
-            if(!users.length) sel.innerHTML = '<option value="">Añadir comensal -> ⚙️</option>';
+            if(!users.length) sel.innerHTML = '<option value="">+ Añadir nombre en ⚙️</option>';
         }
 
         function addU() { 
-            let n = prompt("Nombre del comensal:"); 
+            let n = prompt("Nombre del comensal (Ej: EMU):"); 
             if(n) { users.push(n.trim()); localStorage.setItem('com_users', JSON.stringify(users)); refreshU(); sync(); } 
         }
 
@@ -87,10 +87,16 @@
             const [y, m] = document.getElementById('mSel').value.split('-').map(Number);
             const total = new Date(y, m, 0).getDate();
             for(let i=1; i<=total; i++) {
+                let dateObj = new Date(y, m-1, i);
                 let dayStr = i.toString().padStart(2,'0');
                 let key = `${y}-${m.toString().padStart(2,'0')}-${dayStr}`;
-                list.innerHTML += `<div class="day-row" id="row-${key}">
-                    <div class="day-num-label" style="font-weight:bold; color:#64748b;">${i}</div>
+                let weekday = dateObj.toLocaleDateString('es', {weekday: 'short'});
+                
+                list.innerHTML += `<div class="day-row" id="row-${key}" data-date-label="${weekday} ${i}/${dateObj.toLocaleDateString('es',{month:'short'})}">
+                    <div style="line-height:1.1;">
+                        <div style="font-weight:bold; font-size:1.1rem; color:#1e293b;">${i}</div>
+                        <div style="font-size:0.7rem; color:#64748b; text-transform:lowercase;">${weekday}</div>
+                    </div>
                     <div style="display:flex; gap:3px;">
                         <button class="cycle-btn" onclick="cycle(this,'D')" data-t="Desayuno">No</button>
                         <button class="cycle-btn" onclick="cycle(this,'A')" data-t="Almuerzo">No</button>
@@ -114,7 +120,6 @@
             try {
                 const res = await fetch(API);
                 allData = await res.json();
-                
                 document.querySelectorAll('.cycle-btn').forEach(b => { b.innerText="No"; b.className="cycle-btn"; });
                 document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
 
@@ -155,13 +160,17 @@
             document.getElementById('uResTitle').innerText = "Resumen: " + user;
             let html = "";
             document.querySelectorAll('.day-row').forEach(row => {
-                let items = Array.from(row.querySelectorAll('.cycle-btn')).filter(b => b.innerText !== "No").map(b => b.dataset.t[0]+":"+b.innerText);
+                let items = Array.from(row.querySelectorAll('.cycle-btn'))
+                                 .filter(b => b.innerText !== "No")
+                                 .map(b => b.dataset.t[0] + ":" + b.innerText);
                 if(items.length) {
-                    let dayValue = row.id.split('-')[2]; // Extrae el día del ID del row (ej: "25")
-                    html += `<p style="border-bottom:1px solid #444; padding:5px 0; margin:0;">Día ${dayValue}: ${items.join(', ')}</p>`;
+                    let dateLabel = row.getAttribute('data-date-label');
+                    html += `<div style="border-bottom:1px solid rgba(255,255,255,0.1); padding:8px 0;">
+                                <span style="font-weight:bold; color:var(--wa);">${dateLabel}:</span> ${items.join(', ')}
+                             </div>`;
                 }
             });
-            document.getElementById('uResList').innerHTML = html || "No tienes pedidos marcados.";
+            document.getElementById('uResList').innerHTML = html || "Sin registros futuros.";
             document.getElementById('userPanel').style.display = 'block';
         }
 
@@ -175,22 +184,23 @@
             const list = document.getElementById('comList');
             if(!date) return;
             const filtered = allData.filter(r => r.date.split('T')[0] === date);
-            if(!filtered.length) { list.innerHTML = "No hay datos para esta fecha."; return; }
+            if(!filtered.length) { list.innerHTML = "No hay pedidos para hoy."; return; }
             
             let html = "";
             ["Desayuno", "Almuerzo", "Cena"].forEach(tipo => {
                 const p = filtered.filter(r => r.type === tipo);
                 if(p.length) {
-                    html += `<div style="color:var(--si); font-weight:bold; margin-top:10px;">${tipo.toUpperCase()}</div>`;
-                    p.forEach(r => html += `<div>• ${r.user} (${r.status})${String(r.blanda).toLowerCase()==='true'?' [B]':''}</div>`);
+                    html += `<div style="color:var(--si); font-weight:bold; margin:10px 0 5px 0; border-bottom:1px solid #444;">${tipo.toUpperCase()} (${p.length})</div>`;
+                    p.forEach(r => html += `<div style="margin-left:5px;">• ${r.user} (${r.status})${String(r.blanda).toLowerCase()==='true'?' [🤢]':''}</div>`);
                 }
             });
             list.innerHTML = html;
         }
 
         function sendWA() {
+            const user = document.getElementById('uSel').value;
             const content = document.getElementById('uResList').innerText;
-            window.open("https://wa.me/?text=" + encodeURIComponent("📝 MI PEDIDO:\n" + content));
+            window.open("https://wa.me/?text=" + encodeURIComponent(`📝 *PEDIDO - ${user}*\n\n${content}`));
         }
 
         function closeP(id) { document.getElementById(id).style.display = 'none'; }
