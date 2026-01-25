@@ -13,7 +13,6 @@
         .admin-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; }
         
         select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.15rem; font-weight: bold; margin-bottom: 5px; background: white; }
-        
         .diet-display { font-size: 0.9rem; color: #64748b; margin-bottom: 10px; padding: 0 5px; font-weight: 500; }
         .diet-val { color: #ef4444; font-weight: bold; }
 
@@ -29,17 +28,20 @@
         
         .date-num { font-size: 1.4rem; font-weight: 800; }
         .day-name { font-size: 0.95rem; font-weight: bold; text-transform: uppercase; color: #64748b; }
-        
         .opt-label { cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; opacity: 0.1; height: 35px; transition: 0.2s; }
         .opt-label.active { opacity: 1; transform: scale(1.1); }
 
         #loadingOverlay { display:none; text-align:center; color: var(--p); font-weight: bold; padding: 10px; font-size: 0.9rem; }
         .main-btn { width: 100%; padding: 16px; border: none; border-radius: 14px; cursor: pointer; font-size: 1rem; font-weight: bold; color: white; margin-top: 10px; }
         
+        /* Admin Panel */
         #adminPanel { display: none; background: #1e293b; color: white; padding: 20px; border-radius: 20px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 95%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); max-height: 90vh; overflow-y: auto; }
         .user-list-item { background: #334155; padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         .user-actions button { background: none; border: none; cursor: pointer; font-size: 1.2rem; margin-left: 5px; }
         input[type="text"] { width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: none; font-size: 1rem; }
+
+        /* Modal Edición */
+        #editModal { display: none; background: #ffffff; color: #1e293b; padding: 20px; border-radius: 16px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1100; width: 85%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
@@ -60,18 +62,28 @@
 
     <div id="adminPanel">
         <h3 style="margin-top:0">Gestión de Comensales</h3>
-        
         <div style="background:#0f172a; padding:15px; border-radius:12px; margin-bottom:20px;">
             <h4 style="margin:0 0 10px 0">Añadir Nuevo</h4>
             <input type="text" id="newU" placeholder="Nombre completo">
             <input type="text" id="newD" placeholder="Dieta (ej: Sin sal)">
             <button onclick="handleUserCloud('addUser')" class="main-btn" style="background:var(--si); padding:10px; margin-top:5px;">+ REGISTRAR</button>
         </div>
-
         <h4>Registrados</h4>
         <div id="registeredUsersList"></div>
-        
         <button onclick="closeAdmin()" class="main-btn" style="background:#475569;">CERRAR</button>
+    </div>
+
+    <div id="editModal">
+        <h4 style="margin:0 0 15px 0">Editar Comensal</h4>
+        <input type="hidden" id="oldNameEdit">
+        <label style="font-size:0.8rem; font-weight:bold;">Nombre:</label>
+        <input type="text" id="editU" style="border: 1px solid #cbd5e1; margin-top:5px;">
+        <label style="font-size:0.8rem; font-weight:bold;">Dieta:</label>
+        <input type="text" id="editD" style="border: 1px solid #cbd5e1; margin-top:5px;">
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button onclick="saveEdit()" class="main-btn" style="background:var(--si); padding:10px; flex:1; margin:0">GUARDAR</button>
+            <button onclick="closeEdit()" class="main-btn" style="background:#ef4444; padding:10px; flex:1; margin:0">CANCELAR</button>
+        </div>
     </div>
 
     <script>
@@ -96,20 +108,22 @@
                 const data = await resp.json();
                 allUsers = data.users || []; allRecords = data.records || [];
                 updateDropdown(); updateUserUI(); renderAdminList();
-            } catch(e) { console.error("Error cargando nube:", e); }
+            } catch(e) { console.error(e); }
             document.getElementById('loadingOverlay').style.display = "none";
         }
 
         function updateDropdown() {
             const select = document.getElementById('userDropdown');
+            const currentVal = select.value;
             select.innerHTML = allUsers.map(u => `<option value="${u.name}">${u.name}</option>`).join('') || '<option value="">Crea usuarios en ⚙️</option>';
-            const last = localStorage.getItem('last_user'); if(last) select.value = last;
+            if (allUsers.some(u => u.name === currentVal)) select.value = currentVal;
+            else if(localStorage.getItem('last_user')) select.value = localStorage.getItem('last_user');
         }
 
         function updateUserUI() {
             const user = allUsers.find(u => u.name === document.getElementById('userDropdown').value);
             document.getElementById('dietDisplay').innerHTML = `Dieta: <span class="diet-val">${(user && user.diet) ? user.diet : 'Ninguna'}</span>`;
-            localStorage.setItem('last_user', document.getElementById('userDropdown').value);
+            if(user) localStorage.setItem('last_user', user.name);
             syncData();
         }
 
@@ -119,11 +133,30 @@
                 <div class="user-list-item">
                     <div style="flex:1"><strong>${u.name}</strong><br><small style="color:#94a3b8">${u.diet || 'Sin dieta'}</small></div>
                     <div class="user-actions">
-                        <button onclick="editUserPrompt('${u.name}', '${u.diet}')">✏️</button>
+                        <button onclick="openEdit('${u.name}', '${u.diet}')">✏️</button>
                         <button onclick="deleteUserPrompt('${u.name}')">🗑️</button>
                     </div>
                 </div>
             `).join('');
+        }
+
+        // Manejo de Edición Personalizada
+        function openEdit(name, diet) {
+            document.getElementById('oldNameEdit').value = name;
+            document.getElementById('editU').value = name;
+            document.getElementById('editD').value = diet || '';
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEdit() { document.getElementById('editModal').style.display = 'none'; }
+
+        async function saveEdit() {
+            const oldName = document.getElementById('oldNameEdit').value;
+            const newName = document.getElementById('editU').value.trim();
+            const newDiet = document.getElementById('editD').value.trim();
+            if(!newName) return;
+            closeEdit();
+            await handleUserCloud('editUser', newName, newDiet, oldName);
         }
 
         async function handleUserCloud(action, name, diet, oldName) {
@@ -132,23 +165,18 @@
             if(action === 'addUser') {
                 payload.name = document.getElementById('newU').value.trim();
                 payload.diet = document.getElementById('newD').value.trim();
-                if(!payload.name) return;
+                if(!payload.name) { document.getElementById('loadingOverlay').style.display = "none"; return; }
             }
             try {
                 await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
                 if(action === 'addUser') { document.getElementById('newU').value = ''; document.getElementById('newD').value = ''; }
+                // Esperar un momento para que la base de datos se actualice y recargar
                 setTimeout(fetchFromCloud, 1200);
             } catch(e) { alert("Error en la operación"); }
         }
 
-        function editUserPrompt(name, diet) {
-            const newName = prompt("Nuevo nombre:", name);
-            const newDiet = prompt("Nueva dieta:", diet);
-            if(newName) handleUserCloud('editUser', newName, newDiet, name);
-        }
-
         function deleteUserPrompt(name) {
-            if(confirm(`¿Eliminar a ${name}?\nSe borrarán permanentemente sus datos y registros.`)) handleUserCloud('deleteUser', name);
+            if(confirm(`¿Eliminar a ${name}?\nSe borrarán permanentemente sus datos.`)) handleUserCloud('deleteUser', name);
         }
 
         function render() {
