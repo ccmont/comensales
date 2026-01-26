@@ -3,285 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Comensales Pro</title>
-
+    <title>Cocina - Resumen</title>
     <link rel="apple-touch-icon" href="https://i.ibb.co/Hp78cnq1/iconi-OS.png">
-    <meta name="apple-mobile-web-app-title" content="Comensales">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-   
-    <link rel="icon" type="image/png" sizes="192x192" href="https://i.ibb.co/Hp78cnq1/iconi-OS.png">
-    <meta name="theme-color" content="#2563eb"> 
 
     <style>
-        :root { --bg: #f8fafc; --p: #2563eb; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
+        :root { --bg: #f8fafc; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --p: #2563eb; }
+        * { box-sizing: border-box; }
         body { 
             font-family: -apple-system, sans-serif; 
             background: var(--bg); 
             margin: 0; 
-            /* MARGEN SUPERIOR QUE FUNCIONA */
-            padding: calc(env(safe-area-inset-top) + 30px) 10px 10px 10px; 
+            padding: calc(env(safe-area-inset-top) + 25px) 15px 15px 15px; 
         }
-
-        .card { background: white; border-radius: 16px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 500px; margin: auto; }
-        h2 { font-size: 1.4rem; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .admin-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; }
-        
-        select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.15rem; font-weight: bold; margin-bottom: 5px; background: white; }
-        .diet-display { font-size: 0.9rem; color: #64748b; margin-bottom: 10px; padding: 0 5px; font-weight: 500; }
-        .diet-val { color: #ef4444; font-weight: bold; }
-
-        .cycle-btn { border: 1px solid #cbd5e1; border-radius: 8px; cursor: pointer; flex: 1; font-weight: 700; font-size: 0.75rem; background: white; height: 42px; color: #64748b; }
-        .state-sí { background: var(--si) !important; color: white; border-color: var(--si); }
-        .state-lonchera { background: var(--lonchera) !important; color: white; border-color: var(--lonchera); }
-        .state-tarde { background: var(--tarde) !important; color: white; border-color: var(--tarde); }
-        .state-temprano { background: var(--temprano) !important; color: white; border-color: var(--temprano); }
-        
-        .day-row { display: grid; grid-template-columns: 75px 1fr 45px; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f1f5f9; gap: 8px; }
-        .today-row { background: #eff6ff; border-left: 4px solid var(--p); }
-        .past-row { background: #f1f5f9; opacity: 0.7; }
-        
-        .date-num { font-size: 1.4rem; font-weight: 800; }
-        .day-name { font-size: 0.95rem; font-weight: bold; text-transform: uppercase; color: #64748b; }
-        .opt-label { cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; opacity: 0.1; height: 35px; transition: 0.2s; }
-        .opt-label.active { opacity: 1; transform: scale(1.1); }
-
-        #loadingOverlay { display:none; text-align:center; color: var(--p); font-weight: bold; padding: 10px; font-size: 0.9rem; }
-        .main-btn { width: 100%; padding: 16px; border: none; border-radius: 14px; cursor: pointer; font-size: 1rem; font-weight: bold; color: white; margin-top: 10px; }
-        
-        #adminPanel { 
-            display: none; background: #1e293b; color: white; padding: 20px; border-radius: 20px; 
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            z-index: 1000; width: 95%; max-width: 450px; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.8); 
-            max-height: 90vh; overflow-y: auto;
-        }
-        .user-list-item { background: #334155; padding: 10px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .user-actions button { background: none; border: none; cursor: pointer; font-size: 1.2rem; margin-left: 5px; }
-        input[type="text"] { width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: none; font-size: 1rem; }
-        #editModal { display: none; background: #ffffff; color: #1e293b; padding: 20px; border-radius: 16px; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1100; width: 85%; max-width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 600px; margin: auto; }
+        h2 { margin-top: 0; display: flex; justify-content: space-between; align-items: center; }
+        .filter-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        input[type="date"] { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1rem; }
+        .type-group { margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; }
+        .type-title { font-weight: bold; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f8fafc; }
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; color: white; margin-left: 5px; }
+        .b-sí { background: var(--si); }
+        .b-lonchera { background: var(--lonchera); }
+        .b-tarde { background: var(--tarde); }
+        .b-temprano { background: var(--temprano); }
+        .b-blanda { background: #ef4444; }
+        .b-bandeja { background: #6366f1; }
+        .diet-info { font-size: 0.8rem; color: #64748b; font-style: italic; display: block; }
+        .wa-btn { background: #25d366; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 1rem; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Comensales <button onclick="openAdmin()" class="admin-btn">⚙️</button></h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap:8px;">
-            <select id="userDropdown" onchange="updateUserUI()"></select>
-            <select id="mSelect" onchange="render(); syncData();"></select>
+        <h2>Resumen Cocina</h2>
+        <div class="filter-box">
+            <input type="date" id="dateFilter" onchange="renderCocina()">
+            <button onclick="fetchData()" style="padding:10px; border-radius:8px; border:1px solid #ccc;">🔄</button>
         </div>
-        <div class="diet-display" id="dietDisplay">Dieta: <span class="diet-val">-</span></div>
-
-        <div id="loadingOverlay">🔄 Sincronizando...</div>
-        <div id="calList" style="max-height: 50vh; overflow-y: auto; scroll-behavior: smooth; margin-top: 10px;"></div>
-        
-        <button onclick="save()" class="main-btn" style="background:var(--p);" id="saveBtn">💾 GUARDAR CAMBIOS</button>
-        <button onclick="window.location.href='cocina.html'" class="main-btn" style="background:#64748b; margin-top:5px; padding:12px;">RESUMEN</button>
-    </div>
-
-    <div id="adminPanel">
-        <h3 style="margin-top:0">Gestión de Comensales</h3>
-        <div style="background:#0f172a; padding:15px; border-radius:12px; margin-bottom:20px;">
-            <h4 style="margin:0 0 10px 0">Añadir Nuevo</h4>
-            <input type="text" id="newU" placeholder="Nombre completo">
-            <input type="text" id="newD" placeholder="Dieta (ej: Sin sal)">
-            <button onclick="handleUserCloud('addUser')" class="main-btn" style="background:var(--si); padding:10px; margin-top:5px;">+ REGISTRAR</button>
-        </div>
-        <h4>Registrados</h4>
-        <div id="registeredUsersList"></div>
-        <button onclick="closeAdmin()" class="main-btn" style="background:#475569;">CERRAR</button>
-    </div>
-
-    <div id="editModal">
-        <h4 style="margin:0 0 15px 0">Editar Comensal</h4>
-        <input type="hidden" id="oldNameEdit">
-        <label style="font-size:0.8rem; font-weight:bold;">Nombre:</label>
-        <input type="text" id="editU" style="border: 1px solid #cbd5e1; margin-top:5px;">
-        <label style="font-size:0.8rem; font-weight:bold;">Dieta:</label>
-        <input type="text" id="editD" style="border: 1px solid #cbd5e1; margin-top:5px;">
-        <div style="display:flex; gap:10px; margin-top:10px;">
-            <button onclick="saveEdit()" class="main-btn" style="background:var(--si); padding:10px; flex:1; margin:0">GUARDAR</button>
-            <button onclick="closeEdit()" class="main-btn" style="background:#ef4444; padding:10px; flex:1; margin:0">CANCELAR</button>
-        </div>
+        <div id="loading" style="text-align:center; color:var(--p); font-weight:bold; margin:10px 0;">Cargando datos...</div>
+        <div id="content"></div>
+        <button class="wa-btn" onclick="sendWhatsApp()">📤 ENVIAR RESUMEN POR WHATSAPP</button>
+        <button onclick="window.location.href='comensales.html'" style="width: 100%; margin-top: 10px; padding: 12px; border: none; background: #64748b; color: white; border-radius: 12px; font-weight: bold;">VOLVER</button>
     </div>
 
     <script>
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwTguHdrFeoXZ7mfIRYjO8k-vUzIjhqAAuGecNyKVkO9uDxxbyJfyV5PTgy_YRX724W4A/exec";
-        let allUsers = []; let allRecords = [];
-        const states = { A: ["ALM", "Sí", "Tarde", "Temprano"], C: ["CEN", "Sí"], D: ["DES", "Sí", "Lonchera"] };
+        let allRecords = []; let allUsers = [];
 
-        async function init() {
-            const mSelect = document.getElementById('mSelect');
-            const now = new Date();
-            for(let i=0; i<2; i++) {
-                let d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-                mSelect.innerHTML += `<option value="${d.getFullYear()}-${d.getMonth()+1}">${d.toLocaleDateString('es',{month:'short',year:'numeric'}).toUpperCase()}</option>`;
-            }
-            render(); await fetchFromCloud();
-        }
-
-        async function fetchFromCloud() {
-            document.getElementById('loadingOverlay').style.display = "block";
+        async function fetchData() {
+            document.getElementById('loading').style.display = "block";
             try {
                 const resp = await fetch(WEB_APP_URL);
                 const data = await resp.json();
-                allUsers = data.users || []; allRecords = data.records || [];
-                updateDropdown(); updateUserUI(); renderAdminList();
+                allRecords = data.records || [];
+                allUsers = data.users || [];
+                renderCocina();
             } catch(e) { console.error(e); }
-            document.getElementById('loadingOverlay').style.display = "none";
+            document.getElementById('loading').style.display = "none";
         }
 
-        function updateDropdown() {
-            const select = document.getElementById('userDropdown');
-            const currentVal = select.value;
-            select.innerHTML = allUsers.map(u => `<option value="${u.name}">${u.name}</option>`).join('') || '<option value="">Crea usuarios en ⚙️</option>';
-            if (allUsers.some(u => u.name === currentVal)) select.value = currentVal;
-            else if(localStorage.getItem('last_user')) select.value = localStorage.getItem('last_user');
-        }
-
-        function updateUserUI() {
-            const user = allUsers.find(u => u.name === document.getElementById('userDropdown').value);
-            document.getElementById('dietDisplay').innerHTML = `Dieta: <span class="diet-val">${(user && user.diet) ? user.diet : 'Ninguna'}</span>`;
-            if(user) localStorage.setItem('last_user', user.name);
-            syncData();
-        }
-
-        function renderAdminList() {
-            const listDiv = document.getElementById('registeredUsersList');
-            listDiv.innerHTML = allUsers.map(u => `
-                <div class="user-list-item">
-                    <div style="flex:1"><strong>${u.name}</strong><br><small style="color:#94a3b8">${u.diet || 'Sin dieta'}</small></div>
-                    <div class="user-actions">
-                        <button onclick="openEdit('${u.name}', '${u.diet}')">✏️</button>
-                        <button onclick="deleteUserPrompt('${u.name}')">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function openEdit(name, diet) {
-            document.getElementById('oldNameEdit').value = name;
-            document.getElementById('editU').value = name;
-            document.getElementById('editD').value = diet || '';
-            document.getElementById('editModal').style.display = 'block';
-        }
-
-        function closeEdit() { document.getElementById('editModal').style.display = 'none'; }
-
-        async function saveEdit() {
-            const oldName = document.getElementById('oldNameEdit').value;
-            const newName = document.getElementById('editU').value.trim();
-            const newDiet = document.getElementById('editD').value.trim();
-            if(!newName) return;
-            closeEdit();
-            await handleUserCloud('editUser', newName, newDiet, oldName);
-        }
-
-        async function handleUserCloud(action, name, diet, oldName) {
-            document.getElementById('loadingOverlay').style.display = "block";
-            let payload = { action, name, diet, oldName };
-            if(action === 'addUser') {
-                payload.name = document.getElementById('newU').value.trim();
-                payload.diet = document.getElementById('newD').value.trim();
-                if(!payload.name) { document.getElementById('loadingOverlay').style.display = "none"; return; }
-            }
-            try {
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-                if(action === 'addUser') { document.getElementById('newU').value = ''; document.getElementById('newD').value = ''; }
-                setTimeout(fetchFromCloud, 1200);
-            } catch(e) { alert("Error en la operación"); }
-        }
-
-        function deleteUserPrompt(name) {
-            if(confirm(`¿Eliminar a ${name}?\nSe borrarán permanentemente sus datos.`)) handleUserCloud('deleteUser', name);
-        }
-
-        function render() {
-            const list = document.getElementById('calList'); list.innerHTML = "";
-            const [y, m] = document.getElementById('mSelect').value.split('-').map(Number);
-            const total = new Date(y, m, 0).getDate(); const hoy = new Date(); hoy.setHours(0,0,0,0);
-            let targetId = null; const esMesActual = (hoy.getFullYear() === y && (hoy.getMonth() + 1) === m);
-
-            for(let i=1; i<=total; i++) {
-                let d = new Date(y, m-1, i); let dateKey = `${y}-${m.toString().padStart(2,'0')}-${i.toString().padStart(2,'0')}`;
-                let isPast = d < hoy; let isToday = dateKey === hoy.toISOString().split('T')[0];
-                if (esMesActual && isToday) targetId = `row-${dateKey}`;
-                if (!esMesActual && i === 1) targetId = `row-${dateKey}`;
-
-                list.innerHTML += `<div class="day-row ${isPast?'past-row':''} ${isToday?'today-row':''}" id="row-${dateKey}">
-                    <div><div class="date-num">${i}</div><div class="day-name">${d.toLocaleDateString('es',{weekday:'short'})}</div></div>
-                    <div style="display:flex; gap:4px;">
-                        <button class="cycle-btn" ${isPast?'disabled':''} onclick="cycle(this,'A')" data-t="Almuerzo">ALM</button>
-                        <button class="cycle-btn" ${isPast?'disabled':''} onclick="cycle(this,'C')" data-t="Cena">CEN</button>
-                        <button class="cycle-btn" ${isPast?'disabled':''} onclick="cycle(this,'D')" data-t="Desayuno">DES</button>
-                    </div>
-                    <div style="display:flex; flex-direction:column; gap:2px;">
-                        <label class="opt-label ${isPast?'disabled':''}">🤢<input type="checkbox" style="display:none" class="bl-check" onchange="this.parentElement.classList.toggle('active')"></label>
-                        <label class="opt-label ${isPast?'disabled':''}">🛏️<input type="checkbox" style="display:none" class="bj-check" onchange="this.parentElement.classList.toggle('active')"></label>
-                    </div>
-                </div>`;
-            }
-            if(targetId) setTimeout(() => document.getElementById(targetId).scrollIntoView({behavior:'smooth', block:'center'}), 150);
-        }
-
-        function cycle(btn, type) {
-            if(btn.disabled) return;
-            let opts = states[type]; let nextIdx = (opts.indexOf(btn.innerText) + 1) % opts.length;
-            btn.innerText = opts[nextIdx];
-            btn.className = "cycle-btn" + (nextIdx !== 0 ? " state-" + btn.innerText.toLowerCase() : "");
-        }
-
-        function syncData() {
-            const user = document.getElementById('userDropdown').value; resetUI();
-            allRecords.filter(r => r.user === user).forEach(r => {
-                let row = document.getElementById(`row-${new Date(r.date).toISOString().split('T')[0]}`);
-                if(row) {
-                    let btn = row.querySelector(`[data-t="${r.type}"]`);
-                    if(btn) { btn.innerText = r.status; btn.className = "cycle-btn state-" + r.status.toLowerCase(); }
-                    if(r.blanda) row.querySelector('.bl-check').parentElement.classList.add('active');
-                    if(r.bandeja) row.querySelector('.bj-check').parentElement.classList.add('active');
+        function renderCocina() {
+            const container = document.getElementById('content');
+            const selectedDate = document.getElementById('dateFilter').value;
+            container.innerHTML = "";
+            if(!selectedDate) return;
+            const filtered = allRecords.filter(r => {
+                const rDate = new Date(r.date).toISOString().split('T')[0];
+                return rDate === selectedDate;
+            });
+            const tipos = ["Almuerzo", "Cena", "Desayuno"];
+            tipos.forEach(tipo => {
+                const items = filtered.filter(r => r.type === tipo);
+                const markedUserNames = items.map(i => i.user);
+                const unmarkedUsers = allUsers.filter(u => !markedUserNames.includes(u.name));
+                if(items.length > 0 || unmarkedUsers.length > 0) {
+                    let html = `<div class="type-group">
+                        <div class="type-title"><span>${tipo.toUpperCase()}</span> <span>Marcados: ${items.length}</span></div>`;
+                    items.forEach(r => {
+                        html += `
+                        <div class="row">
+                            <div><strong>${r.user}</strong>${r.diet ? `<span class="diet-info">⚠️ ${r.diet}</span>` : ''}</div>
+                            <div>
+                                <span class="badge b-${r.status.toLowerCase()}">${r.status}</span>
+                                ${r.blanda ? '<span class="badge b-blanda">Blanda</span>' : ''}
+                                ${r.bandeja ? '<span class="badge b-bandeja">Bandeja</span>' : ''}
+                            </div>
+                        </div>`;
+                    });
+                    if(unmarkedUsers.length > 0) {
+                        const names = unmarkedUsers.map(u => u.name).join(", ");
+                        html += `<div style="margin-top:10px; font-size:0.8rem; color:#64748b; border-top:1px dashed #ccc; padding-top:5px;"><strong>Sin marca:</strong> ${names}</div>`;
+                    }
+                    html += `</div>`;
+                    container.innerHTML += html;
                 }
             });
         }
 
-        async function save() {
-            const name = document.getElementById('userDropdown').value; if(!name) return;
-            const diet = allUsers.find(u => u.name === name)?.diet || "";
-            const btn = document.getElementById('saveBtn'); btn.innerText = "⏳ Guardando..."; btn.disabled = true;
-            let records = [];
-            document.querySelectorAll('.day-row').forEach(row => {
-                const date = row.id.replace('row-','');
-                const isBl = row.querySelector('.bl-check').parentElement.classList.contains('active');
-                const isBj = row.querySelector('.bj-check').parentElement.classList.contains('active');
-                row.querySelectorAll('.cycle-btn').forEach(b => {
-                    const statusVal = b.innerText; const esDef = Object.values(states).some(s => s[0] === statusVal);
-                    records.push({user:name, date, type:b.dataset.t, status: esDef ? "No" : statusVal, blanda: esDef ? false : isBl, bandeja: esDef ? false : isBj, diet});
-                });
+        function sendWhatsApp() {
+            const date = document.getElementById('dateFilter').value;
+            const filtered = allRecords.filter(r => new Date(r.date).toISOString().split('T')[0] === date);
+            if(filtered.length === 0 && allUsers.length === 0) return alert("No hay datos para enviar");
+            let msg = `🍴 *RESUMEN COCINA - ${date}* \n\n`;
+            ["Almuerzo", "Cena", "Desayuno"].forEach(tipo => {
+                const items = filtered.filter(r => r.type === tipo);
+                const markedNames = items.map(i => i.user);
+                const unmarkedNames = allUsers.filter(u => !markedNames.includes(u.name)).map(u => u.name);
+                if(items.length > 0 || unmarkedNames.length > 0) {
+                    msg += `*${tipo.toUpperCase()}*\n`;
+                    if(items.length > 0) {
+                        items.forEach(r => { msg += `- ${r.user}: ${r.status}${r.blanda?' [B]':''}${r.bandeja?' [BED]':''}\n`; });
+                    }
+                    if(unmarkedNames.length > 0) { msg += `_Sin marca:_ ${unmarkedNames.join(", ")}\n`; }
+                    msg += `\n`;
+                }
             });
-            try {
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:"saveRecords", records}) });
-                setTimeout(() => { fetchFromCloud(); btn.innerText = "💾 GUARDAR CAMBIOS"; btn.disabled = false; }, 1200);
-            } catch(e) { alert("Error al guardar"); btn.disabled = false; }
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
-        function resetUI() {
-            document.querySelectorAll('.day-row').forEach(row => {
-                row.querySelector('[data-t="Almuerzo"]').innerText = "ALM";
-                row.querySelector('[data-t="Cena"]').innerText = "CEN";
-                row.querySelector('[data-t="Desayuno"]').innerText = "DES";
-                row.querySelectorAll('.cycle-btn').forEach(b => b.className = "cycle-btn");
-            });
-            document.querySelectorAll('.opt-label').forEach(l => l.classList.remove('active'));
-        }
-
-        function openAdmin() {
-            if(prompt("Contraseña de acceso:") === "1234") {
-                document.getElementById('adminPanel').style.display='block';
-            } else { alert("Contraseña incorrecta"); }
-        }
-        function closeAdmin() { document.getElementById('adminPanel').style.display='none'; }
-        
-        init();
+        document.getElementById('dateFilter').valueAsDate = new Date();
+        fetchData();
+        setInterval(fetchData, 300000);
     </script>
 </body>
 </html>
