@@ -12,18 +12,13 @@
     <style>
         :root { --bg: #f8fafc; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --p: #2563eb; }
         * { box-sizing: border-box; }
-
         body { 
             font-family: -apple-system, sans-serif; 
             background: var(--bg); 
             margin: 0; 
-            /* Margen extra para modo App */
-            padding-top: calc(env(safe-area-inset-top) + 25px); 
-            padding-left: 15px;
-            padding-right: 15px;
-            padding-bottom: 15px;
+            /* MARGEN SUPERIOR QUE FUNCIONA */
+            padding: calc(env(safe-area-inset-top) + 25px) 15px 15px 15px; 
         }
-
         .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 600px; margin: auto; }
         h2 { margin-top: 0; display: flex; justify-content: space-between; align-items: center; }
         .filter-box { display: flex; gap: 10px; margin-bottom: 20px; }
@@ -57,9 +52,9 @@
     </div>
 
     <script>
-        // PEGA AQUÍ TU LÓGICA DE JAVASCRIPT ORIGINAL DE COCINA.HTML
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwTguHdrFeoXZ7mfIRYjO8k-vUzIjhqAAuGecNyKVkO9uDxxbyJfyV5PTgy_YRX724W4A/exec";
         let allRecords = []; let allUsers = [];
+
         async function fetchData() {
             document.getElementById('loading').style.display = "block";
             try {
@@ -71,6 +66,7 @@
             } catch(e) { console.error(e); }
             document.getElementById('loading').style.display = "none";
         }
+
         function renderCocina() {
             const container = document.getElementById('content');
             const selectedDate = document.getElementById('dateFilter').value;
@@ -108,6 +104,7 @@
                 }
             });
         }
+
         function sendWhatsApp() {
             const date = document.getElementById('dateFilter').value;
             const filtered = allRecords.filter(r => new Date(r.date).toISOString().split('T')[0] === date);
@@ -128,6 +125,7 @@
             });
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
+
         document.getElementById('dateFilter').valueAsDate = new Date();
         fetchData();
         setInterval(fetchData, 300000);
