@@ -106,7 +106,7 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwTguHdrFeoXZ7mfIRYjO8k-vUzIjhqAAuGecNyKVkO9uDxxbyJfyV5PTgy_YRX724W4A/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyi1EgEkZ9xpvL2_uhGXWSWOVKYEcxbBEb5K7BXM11zm9p77DnMLqLgU73a-JXubdaSnw/exec";
         let allUsers = []; let allRecords = [];
         const states = { A: ["ALM", "Sí", "Tarde", "Temprano"], C: ["CEN", "Sí"], D: ["DES", "Sí", "Lonchera", "Tarde"] };
 
@@ -244,24 +244,64 @@
             });
         }
 
-        async function save() {
+async function save() {
             const name = document.getElementById('userDropdown').value; if(!name) return;
             const diet = allUsers.find(u => u.name === name)?.diet || "";
             const btn = document.getElementById('saveBtn'); btn.innerText = "⏳ Guardando..."; btn.disabled = true;
+            
+            // 1. Identificamos qué mes y año tiene seleccionado el usuario en el desplegable
+            const [selYear, selMonth] = document.getElementById('mSelect').value.split('-').map(Number);
             let records = [];
+            
             document.querySelectorAll('.day-row').forEach(row => {
-                const date = row.id.replace('row-','');
-                const isBl = row.querySelector('.bl-check').parentElement.classList.contains('active');
-                const isBj = row.querySelector('.bj-check').parentElement.classList.contains('active');
-                row.querySelectorAll('.cycle-btn').forEach(b => {
-                    const statusVal = b.innerText; const esDef = Object.values(states).some(s => s[0] === statusVal);
-                    records.push({user:name, date, type:b.dataset.t, status: esDef ? "No" : statusVal, blanda: esDef ? false : isBl, bandeja: esDef ? false : isBj, diet});
-                });
+                const dateStr = row.id.replace('row-','');
+                const rowDate = new Date(dateStr + "T00:00:00");
+                
+                // 2. Solo añadimos al paquete los días que pertenecen a ese mes
+                if (rowDate.getFullYear() === selYear && (rowDate.getMonth() + 1) === selMonth) {
+                    const isBl = row.querySelector('.bl-check').parentElement.classList.contains('active');
+                    const isBj = row.querySelector('.bj-check').parentElement.classList.contains('active');
+                    
+                    row.querySelectorAll('.cycle-btn').forEach(b => {
+                        const statusVal = b.innerText; 
+                        const esDef = Object.values(states).some(s => s[0] === statusVal);
+                        
+                        records.push({
+                            user: name, 
+                            date: dateStr, 
+                            type: b.dataset.t, 
+                            status: esDef ? "No" : statusVal, 
+                            blanda: esDef ? false : isBl, 
+                            bandeja: esDef ? false : isBj, 
+                            diet
+                        });
+                    });
+                }
             });
+
             try {
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({action:"saveRecords", records}) });
-                setTimeout(() => { fetchFromCloud(); btn.innerText = "💾 GUARDAR CAMBIOS"; btn.disabled = false; }, 1200);
-            } catch(e) { alert("Error al guardar"); btn.disabled = false; }
+                // 3. REEMPLAZO: Aquí enviamos no solo los records, sino el mes y año por separado
+                await fetch(WEB_APP_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    body: JSON.stringify({
+                        action: "saveRecords", 
+                        name: name,
+                        month: selMonth,
+                        year: selYear,
+                        records: records
+                    }) 
+                });
+                
+                setTimeout(() => { 
+                    fetchFromCloud(); 
+                    btn.innerText = "💾 GUARDAR CAMBIOS"; 
+                    btn.disabled = false; 
+                }, 1200);
+            } catch(e) { 
+                alert("Error al guardar"); 
+                btn.disabled = false; 
+            }
         }
 
         function resetUI() {
