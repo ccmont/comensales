@@ -115,9 +115,10 @@
                 const markedNames = items.map(i => i.user);
                 const unmarkedNames = allUsers.filter(u => !markedNames.includes(u.name)).map(u => u.name);
                 if(items.length > 0 || unmarkedNames.length > 0) {
-                    msg += `*${tipo.toUpperCase()}*\n`;
+                    const totalComensales = items.length;
+                    msg += `*${tipo.toUpperCase()}* (Total: ${totalComensales})\n`;
                     if(items.length > 0) {
-                        items.forEach(r => { msg += `- ${r.user}: ${r.status}${r.blanda?' [B]':''}${r.bandeja?' [BED]':''}\n`; });
+                        items.forEach(r => { msg += `- ${r.user}: ${r.status}${r.blanda?' [Blanda]':''}${r.bandeja?' [Bandeja]':''}\n`; });
                     }
                     if(unmarkedNames.length > 0) { msg += `_Sin marca:_ ${unmarkedNames.join(", ")}\n`; }
                     msg += `\n`;
