@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Comensales Pro</title>
 
-    <link rel="apple-touch-icon" href="https://i.ibb.co/Hp78cnq1/iconi-OS.png">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/ynBZvRy7/comensales-icon.jpg">
     <meta name="apple-mobile-web-app-title" content="Comensales">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
    
-    <link rel="icon" type="image/png" sizes="192x192" href="https://i.ibb.co/Hp78cnq1/iconi-OS.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="https://i.ibb.co/ynBZvRy7/comensales-icon.jpg">
     <meta name="theme-color" content="#2563eb"> 
 
     <style>
@@ -21,7 +21,6 @@
             font-family: -apple-system, sans-serif; 
             background: var(--bg); 
             margin: 0; 
-            /* MARGEN SUPERIOR QUE FUNCIONA */
             padding: calc(env(safe-area-inset-top) + 30px) 10px 10px 10px; 
         }
 
@@ -75,6 +74,20 @@
         <div id="loadingOverlay">🔄 Sincronizando...</div>
         <div id="calList" style="max-height: 50vh; overflow-y: auto; scroll-behavior: smooth; margin-top: 10px;"></div>
         
+        <!-- LEYENDA DE ICONOS -->
+        <div style="background: #f8fafc; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 0.85rem; color: #64748b;">
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 1.3rem;">🤢</span>
+                    <span>Dieta blanda</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <span style="font-size: 1.3rem;">🛏️</span>
+                    <span>Bandeja de enfermo</span>
+                </div>
+            </div>
+        </div>
+        
         <button onclick="save()" class="main-btn" style="background:var(--p);" id="saveBtn">💾 GUARDAR CAMBIOS</button>
         <button onclick="window.location.href='cocina.html'" class="main-btn" style="background:#64748b; margin-top:5px; padding:12px;">RESUMEN</button>
     </div>
@@ -106,8 +119,11 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyi1EgEkZ9xpvL2_uhGXWSWOVKYEcxbBEb5K7BXM11zm9p77DnMLqLgU73a-JXubdaSnw/exec";
-        let allUsers = []; let allRecords = [];
+        // ⚠️ REEMPLAZAR ESTA URL CON LA DE TU SCRIPT DE PRODUCCIÓN
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyEyUBGvndk7kA5iHuJ6XngKDhsbx3XglSM_ImNuDEGKaxh_RuN3RxtfYIt34AibLbJvA/exec";
+        
+        let allUsers = []; 
+        let allRecords = [];
         const states = { A: ["ALM", "Sí", "Tarde", "Temprano"], C: ["CEN", "Sí"], D: ["DES", "Sí", "Lonchera", "Tarde"] };
 
         async function init() {
@@ -125,8 +141,11 @@
             try {
                 const resp = await fetch(WEB_APP_URL);
                 const data = await resp.json();
-                allUsers = data.users || []; allRecords = data.records || [];
-                updateDropdown(); updateUserUI(); renderAdminList();
+                allUsers = data.users || []; 
+                allRecords = data.records || [];
+                updateDropdown(); 
+                updateUserUI(); 
+                renderAdminList();
             } catch(e) { console.error(e); }
             document.getElementById('loadingOverlay').style.display = "none";
         }
@@ -186,10 +205,13 @@
                 if(!payload.name) { document.getElementById('loadingOverlay').style.display = "none"; return; }
             }
             try {
-                await fetch(WEB_APP_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
                 if(action === 'addUser') { document.getElementById('newU').value = ''; document.getElementById('newD').value = ''; }
-                setTimeout(fetchFromCloud, 1200);
-            } catch(e) { alert("Error en la operación"); }
+                await fetchFromCloud();
+            } catch(e) { 
+                alert("Error en la operación"); 
+                document.getElementById('loadingOverlay').style.display = "none";
+            }
         }
 
         function deleteUserPrompt(name) {
@@ -244,20 +266,24 @@
             });
         }
 
-async function save() {
-            const name = document.getElementById('userDropdown').value; if(!name) return;
+        async function save() {
+            const name = document.getElementById('userDropdown').value; 
+            if(!name) return;
+            
             const diet = allUsers.find(u => u.name === name)?.diet || "";
-            const btn = document.getElementById('saveBtn'); btn.innerText = "⏳ Guardando..."; btn.disabled = true;
-            
-            // 1. Identificamos qué mes y año tiene seleccionado el usuario en el desplegable
+            const btn = document.getElementById('saveBtn');
             const [selYear, selMonth] = document.getElementById('mSelect').value.split('-').map(Number);
-            let records = [];
             
-            document.querySelectorAll('.day-row').forEach(row => {
+            btn.innerText = "⏳ Guardando..."; 
+            btn.disabled = true;
+            
+            let records = [];
+            const rows = document.querySelectorAll('.day-row');
+            
+            rows.forEach(row => {
                 const dateStr = row.id.replace('row-','');
                 const rowDate = new Date(dateStr + "T00:00:00");
                 
-                // 2. Solo añadimos al paquete los días que pertenecen a ese mes
                 if (rowDate.getFullYear() === selYear && (rowDate.getMonth() + 1) === selMonth) {
                     const isBl = row.querySelector('.bl-check').parentElement.classList.contains('active');
                     const isBj = row.querySelector('.bj-check').parentElement.classList.contains('active');
@@ -280,10 +306,8 @@ async function save() {
             });
 
             try {
-                // 3. REEMPLAZO: Aquí enviamos no solo los records, sino el mes y año por separado
                 await fetch(WEB_APP_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
+                    method: 'POST',
                     body: JSON.stringify({
                         action: "saveRecords", 
                         name: name,
@@ -293,14 +317,36 @@ async function save() {
                     }) 
                 });
                 
-                setTimeout(() => { 
-                    fetchFromCloud(); 
-                    btn.innerText = "💾 GUARDAR CAMBIOS"; 
-                    btn.disabled = false; 
-                }, 1200);
+                // Actualizar caché local
+                allRecords = allRecords.filter(r => {
+                    if (r.user !== name) return true;
+                    const rDate = new Date(r.date);
+                    const rMonth = rDate.getMonth() + 1;
+                    const rYear = rDate.getFullYear();
+                    return !(rMonth === selMonth && rYear === selYear);
+                });
+                
+                records.forEach(r => {
+                    if (r.status !== "No") {
+                        allRecords.push(r);
+                    }
+                });
+                
+                btn.innerText = `✅ Guardado`; 
+                btn.disabled = false;
+                
+                setTimeout(() => {
+                    btn.innerText = "💾 GUARDAR CAMBIOS";
+                }, 2000);
+                
             } catch(e) { 
+                console.error("Error al guardar:", e);
                 alert("Error al guardar"); 
-                btn.disabled = false; 
+                btn.innerText = "❌ Error";
+                setTimeout(() => {
+                    btn.innerText = "💾 GUARDAR CAMBIOS";
+                    btn.disabled = false;
+                }, 2000);
             }
         }
 

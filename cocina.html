@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Cocina - Resumen</title>
     
-    <link rel="apple-touch-icon" href="https://i.ibb.co/Hp78cnq1/iconi-OS.png">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/ynBZvRy7/comensales-icon.jpg">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
@@ -16,7 +16,6 @@
             font-family: -apple-system, sans-serif; 
             background: var(--bg); 
             margin: 0; 
-            /* MARGEN SUPERIOR QUE FUNCIONA */
             padding: calc(env(safe-area-inset-top) + 25px) 15px 15px 15px; 
         }
         .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 600px; margin: auto; }
@@ -52,7 +51,9 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyi1EgEkZ9xpvL2_uhGXWSWOVKYEcxbBEb5K7BXM11zm9p77DnMLqLgU73a-JXubdaSnw/exec";
+        // ⚠️ REEMPLAZAR ESTA URL CON LA DE TU SCRIPT DE PRODUCCIÓN
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyEyUBGvndk7kA5iHuJ6XngKDhsbx3XglSM_ImNuDEGKaxh_RuN3RxtfYIt34AibLbJvA/exec";
+        
         let allRecords = []; let allUsers = [];
 
         async function fetchData() {
