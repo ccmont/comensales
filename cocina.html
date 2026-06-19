@@ -21,18 +21,7 @@
         .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 600px; margin: auto; }
         h2 { margin-top: 0; display: flex; justify-content: space-between; align-items: center; }
         .filter-box { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
-        select {
-            padding: 14px 10px;
-            border-radius: 10px;
-            border: 2px solid var(--p);
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--p);
-            background: #eff6ff;
-            -webkit-appearance: none;
-            appearance: none;
-            text-align: center;
-        }
+        select { padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1.15rem; font-weight: bold; background: white; }
         #monthFilter { flex: 2; }
         #dayFilter { flex: 1; }
         .type-group { margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; }
@@ -81,7 +70,7 @@
                 const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
                 const opt = document.createElement('option');
                 opt.value = val;
-                opt.textContent = `${MESES[d.getMonth()]} ${d.getFullYear()}`;
+                opt.textContent = d.toLocaleDateString('es', {month:'short', year:'numeric'}).toUpperCase();
                 if (offset === 0) opt.selected = true;
                 monthSel.appendChild(opt);
             }
