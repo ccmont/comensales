@@ -131,7 +131,16 @@
         }
 
         const _hoy = new Date();
-        document.getElementById('dateFilter').value = `${_hoy.getFullYear()}-${String(_hoy.getMonth()+1).padStart(2,'0')}-${String(_hoy.getDate()).padStart(2,'0')}`;
+        const _pad = n => String(n).padStart(2,'0');
+        const _todayStr = `${_hoy.getFullYear()}-${_pad(_hoy.getMonth()+1)}-${_pad(_hoy.getDate())}`;
+        const _hace45 = new Date(_hoy.getFullYear(), _hoy.getMonth(), _hoy.getDate() - 45);
+        const _firstDay = `${_hace45.getFullYear()}-${_pad(_hace45.getMonth()+1)}-${_pad(_hace45.getDate())}`;
+        const _lastDayNext = new Date(_hoy.getFullYear(), _hoy.getMonth()+2, 0);
+        const _maxStr = `${_lastDayNext.getFullYear()}-${_pad(_lastDayNext.getMonth()+1)}-${_pad(_lastDayNext.getDate())}`;
+        const _df = document.getElementById('dateFilter');
+        _df.min = _firstDay;
+        _df.max = _maxStr;
+        _df.value = _todayStr;
 
         fetchData();
         setInterval(fetchData, 300000);
