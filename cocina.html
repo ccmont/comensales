@@ -52,20 +52,25 @@
 
     <script>
         // ⚠️ REEMPLAZAR ESTA URL CON LA DE TU SCRIPT DE PRODUCCIÓN
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyEyUBGvndk7kA5iHuJ6XngKDhsbx3XglSM_ImNuDEGKaxh_RuN3RxtfYIt34AibLbJvA/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx1J4q6dIVJUSKoRpOMAnFDqjfaeCJDvfVVbV4uP9pmgGbhpjPpdwtq3dC69M6C9Ssw/exec";
         
         let allRecords = []; let allUsers = [];
 
         async function fetchData() {
-            document.getElementById('loading').style.display = "block";
+            const loading = document.getElementById('loading');
+            loading.textContent = "🔄 Cargando datos...";
+            loading.style.display = "block";
             try {
                 const resp = await fetch(WEB_APP_URL);
                 const data = await resp.json();
                 allRecords = data.records || [];
                 allUsers = data.users || [];
                 renderCocina();
-            } catch(e) { console.error(e); }
-            document.getElementById('loading').style.display = "none";
+                loading.style.display = "none";
+            } catch(e) {
+                console.error(e);
+                loading.textContent = "⚠️ Error al cargar. Toca 🔄 para reintentar.";
+            }
         }
 
         function renderCocina() {
@@ -73,10 +78,7 @@
             const selectedDate = document.getElementById('dateFilter').value;
             container.innerHTML = "";
             if(!selectedDate) return;
-            const filtered = allRecords.filter(r => {
-                const rDate = new Date(r.date).toISOString().split('T')[0];
-                return rDate === selectedDate;
-            });
+            const filtered = allRecords.filter(r => r.date === selectedDate);
             const tipos = ["Almuerzo", "Cena", "Desayuno"];
             tipos.forEach(tipo => {
                 const items = filtered.filter(r => r.type === tipo);
@@ -108,7 +110,7 @@
 
         function sendWhatsApp() {
             const date = document.getElementById('dateFilter').value;
-            const filtered = allRecords.filter(r => new Date(r.date).toISOString().split('T')[0] === date);
+            const filtered = allRecords.filter(r => r.date === date);
             if(filtered.length === 0 && allUsers.length === 0) return alert("No hay datos para enviar");
             let msg = `🍴 *RESUMEN COCINA - ${date}* \n\n`;
             ["Almuerzo", "Cena", "Desayuno"].forEach(tipo => {
@@ -128,7 +130,9 @@
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
-        document.getElementById('dateFilter').valueAsDate = new Date();
+        const _hoy = new Date();
+        document.getElementById('dateFilter').value = `${_hoy.getFullYear()}-${String(_hoy.getMonth()+1).padStart(2,'0')}-${String(_hoy.getDate()).padStart(2,'0')}`;
+
         fetchData();
         setInterval(fetchData, 300000);
     </script>
