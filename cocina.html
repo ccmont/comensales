@@ -75,7 +75,10 @@
 
         function renderCocina() {
             const container = document.getElementById('content');
-            const selectedDate = document.getElementById('dateFilter').value;
+            const df = document.getElementById('dateFilter');
+            if (df.value < _firstDay) df.value = _firstDay;
+            if (df.value > _maxStr) df.value = _maxStr;
+            const selectedDate = df.value;
             container.innerHTML = "";
             if(!selectedDate) return;
             const filtered = allRecords.filter(r => r.date === selectedDate);
