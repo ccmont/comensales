@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Cocina - Resumen</title>
-    
+
     <link rel="apple-touch-icon" href="https://i.ibb.co/ynBZvRy7/comensales-icon.jpg">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -12,16 +12,29 @@
     <style>
         :root { --bg: #f8fafc; --si: #22c55e; --lonchera: #eab308; --tarde: #a855f7; --temprano: #06b6d4; --p: #2563eb; }
         * { box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, sans-serif; 
-            background: var(--bg); 
-            margin: 0; 
-            padding: calc(env(safe-area-inset-top) + 25px) 15px 15px 15px; 
+        body {
+            font-family: -apple-system, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: calc(env(safe-area-inset-top) + 25px) 15px 15px 15px;
         }
         .card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); max-width: 600px; margin: auto; }
         h2 { margin-top: 0; display: flex; justify-content: space-between; align-items: center; }
-        .filter-box { display: flex; gap: 10px; margin-bottom: 20px; }
-        input[type="date"] { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 1rem; }
+        .filter-box { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
+        select {
+            padding: 14px 10px;
+            border-radius: 10px;
+            border: 2px solid var(--p);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--p);
+            background: #eff6ff;
+            -webkit-appearance: none;
+            appearance: none;
+            text-align: center;
+        }
+        #monthFilter { flex: 2; }
+        #dayFilter { flex: 1; }
         .type-group { margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; }
         .type-title { font-weight: bold; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; }
         .row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f8fafc; }
@@ -41,7 +54,8 @@
     <div class="card">
         <h2>Resumen Cocina</h2>
         <div class="filter-box">
-            <input type="date" id="dateFilter" onchange="renderCocina()">
+            <select id="monthFilter" onchange="updateDays(); renderCocina()"></select>
+            <select id="dayFilter" onchange="renderCocina()"></select>
             <button onclick="fetchData()" style="padding:10px; border-radius:8px; border:1px solid #ccc;">🔄</button>
         </div>
         <div id="loading">Cargando datos...</div>
@@ -51,10 +65,57 @@
     </div>
 
     <script>
-        // ⚠️ REEMPLAZAR ESTA URL CON LA DE TU SCRIPT DE PRODUCCIÓN
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwkeoMulzG7iMp8UhUnsoIv0xBl9iV3fkp082rmis5ANxGeB7wAoAbeMqAB4m2-vTxrmw/exec";
-        
+
         let allRecords = []; let allUsers = [];
+
+        const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+        function initDateSelectors() {
+            const hoy = new Date();
+            const monthSel = document.getElementById('monthFilter');
+
+            // Solo 3 opciones: mes anterior, mes actual, mes siguiente
+            for (let offset = -1; offset <= 1; offset++) {
+                const d = new Date(hoy.getFullYear(), hoy.getMonth() + offset, 1);
+                const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                const opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = `${MESES[d.getMonth()]} ${d.getFullYear()}`;
+                if (offset === 0) opt.selected = true;
+                monthSel.appendChild(opt);
+            }
+
+            updateDays();
+            // Seleccionar día de hoy
+            document.getElementById('dayFilter').value = String(hoy.getDate()).padStart(2,'0');
+        }
+
+        function updateDays() {
+            const monthSel = document.getElementById('monthFilter');
+            const daySel = document.getElementById('dayFilter');
+            const [year, month] = monthSel.value.split('-').map(Number);
+            const daysInMonth = new Date(year, month, 0).getDate(); // día 0 del mes siguiente = último día del mes actual
+            const prevDay = parseInt(daySel.value) || 1;
+
+            daySel.innerHTML = '';
+            for (let d = 1; d <= daysInMonth; d++) {
+                const opt = document.createElement('option');
+                opt.value = String(d).padStart(2,'0');
+                opt.textContent = d;
+                daySel.appendChild(opt);
+            }
+
+            // Restaurar día anterior si sigue siendo válido, sino queda en el último día del mes
+            const clampedDay = Math.min(prevDay, daysInMonth);
+            daySel.value = String(clampedDay).padStart(2,'0');
+        }
+
+        function getSelectedDate() {
+            const monthVal = document.getElementById('monthFilter').value;
+            const dayVal = document.getElementById('dayFilter').value;
+            return `${monthVal}-${dayVal}`;
+        }
 
         async function fetchData() {
             const loading = document.getElementById('loading');
@@ -75,19 +136,16 @@
 
         function renderCocina() {
             const container = document.getElementById('content');
-            const df = document.getElementById('dateFilter');
-            if (df.value < _firstDay) df.value = _firstDay;
-            if (df.value > _maxStr) df.value = _maxStr;
-            const selectedDate = df.value;
+            const selectedDate = getSelectedDate();
             container.innerHTML = "";
-            if(!selectedDate) return;
+            if (!selectedDate) return;
             const filtered = allRecords.filter(r => r.date === selectedDate);
             const tipos = ["Almuerzo", "Cena", "Desayuno"];
             tipos.forEach(tipo => {
                 const items = filtered.filter(r => r.type === tipo);
                 const markedUserNames = items.map(i => i.user);
                 const unmarkedUsers = allUsers.filter(u => !markedUserNames.includes(u.name));
-                if(items.length > 0 || unmarkedUsers.length > 0) {
+                if (items.length > 0 || unmarkedUsers.length > 0) {
                     let html = `<div class="type-group">
                         <div class="type-title"><span>${tipo.toUpperCase()}</span> <span>Marcados: ${items.length}</span></div>`;
                     items.forEach(r => {
@@ -101,7 +159,7 @@
                             </div>
                         </div>`;
                     });
-                    if(unmarkedUsers.length > 0) {
+                    if (unmarkedUsers.length > 0) {
                         const names = unmarkedUsers.map(u => u.name).join(", ");
                         html += `<div style="margin-top:10px; font-size:0.8rem; color:#64748b; border-top:1px dashed #ccc; padding-top:5px;"><strong>Sin marca:</strong> ${names}</div>`;
                     }
@@ -112,39 +170,27 @@
         }
 
         function sendWhatsApp() {
-            const date = document.getElementById('dateFilter').value;
+            const date = getSelectedDate();
             const filtered = allRecords.filter(r => r.date === date);
-            if(filtered.length === 0 && allUsers.length === 0) return alert("No hay datos para enviar");
-            let msg = `🍴 *RESUMEN COCINA - ${date}* \n\n`;
+            if (filtered.length === 0 && allUsers.length === 0) return alert("No hay datos para enviar");
+            const [year, month, day] = date.split('-');
+            const fechaLabel = `${parseInt(day)} de ${MESES[parseInt(month)-1]} ${year}`;
+            let msg = `🍴 *RESUMEN COCINA - ${fechaLabel}* \n\n`;
             ["Almuerzo", "Cena", "Desayuno"].forEach(tipo => {
                 const items = filtered.filter(r => r.type === tipo);
                 const markedNames = items.map(i => i.user);
                 const unmarkedNames = allUsers.filter(u => !markedNames.includes(u.name)).map(u => u.name);
-                if(items.length > 0 || unmarkedNames.length > 0) {
-                    const totalComensales = items.length;
-                    msg += `*${tipo.toUpperCase()}* (Total: ${totalComensales})\n`;
-                    if(items.length > 0) {
-                        items.forEach(r => { msg += `- ${r.user}: ${r.status}${r.blanda?' [Blanda]':''}${r.bandeja?' [Bandeja]':''}\n`; });
-                    }
-                    if(unmarkedNames.length > 0) { msg += `_Sin marca:_ ${unmarkedNames.join(", ")}\n`; }
+                if (items.length > 0 || unmarkedNames.length > 0) {
+                    msg += `*${tipo.toUpperCase()}* (Total: ${items.length})\n`;
+                    items.forEach(r => { msg += `- ${r.user}: ${r.status}${r.blanda?' [Blanda]':''}${r.bandeja?' [Bandeja]':''}\n`; });
+                    if (unmarkedNames.length > 0) { msg += `_Sin marca:_ ${unmarkedNames.join(", ")}\n`; }
                     msg += `\n`;
                 }
             });
             window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
         }
 
-        const _hoy = new Date();
-        const _pad = n => String(n).padStart(2,'0');
-        const _todayStr = `${_hoy.getFullYear()}-${_pad(_hoy.getMonth()+1)}-${_pad(_hoy.getDate())}`;
-        const _primerMesAnterior = new Date(_hoy.getFullYear(), _hoy.getMonth() - 1, 1);
-        const _firstDay = `${_primerMesAnterior.getFullYear()}-${_pad(_primerMesAnterior.getMonth()+1)}-01`;
-        const _lastDayNext = new Date(_hoy.getFullYear(), _hoy.getMonth()+2, 0);
-        const _maxStr = `${_lastDayNext.getFullYear()}-${_pad(_lastDayNext.getMonth()+1)}-${_pad(_lastDayNext.getDate())}`;
-        const _df = document.getElementById('dateFilter');
-        _df.min = _firstDay;
-        _df.max = _maxStr;
-        _df.value = _todayStr;
-
+        initDateSelectors();
         fetchData();
         setInterval(fetchData, 300000);
     </script>
