@@ -52,7 +52,7 @@
 
     <script>
         // ⚠️ REEMPLAZAR ESTA URL CON LA DE TU SCRIPT DE PRODUCCIÓN
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbznKu3PPj4Pim8XzB5SYch3I7i8wbCh-IM7-XgALD-n1certbJySI2U3rDuWGJr81lOkQ/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwkeoMulzG7iMp8UhUnsoIv0xBl9iV3fkp082rmis5ANxGeB7wAoAbeMqAB4m2-vTxrmw/exec";
         
         let allRecords = []; let allUsers = [];
 
@@ -136,8 +136,8 @@
         const _hoy = new Date();
         const _pad = n => String(n).padStart(2,'0');
         const _todayStr = `${_hoy.getFullYear()}-${_pad(_hoy.getMonth()+1)}-${_pad(_hoy.getDate())}`;
-        const _hace45 = new Date(_hoy.getFullYear(), _hoy.getMonth(), _hoy.getDate() - 45);
-        const _firstDay = `${_hace45.getFullYear()}-${_pad(_hace45.getMonth()+1)}-${_pad(_hace45.getDate())}`;
+        const _primerMesAnterior = new Date(_hoy.getFullYear(), _hoy.getMonth() - 1, 1);
+        const _firstDay = `${_primerMesAnterior.getFullYear()}-${_pad(_primerMesAnterior.getMonth()+1)}-01`;
         const _lastDayNext = new Date(_hoy.getFullYear(), _hoy.getMonth()+2, 0);
         const _maxStr = `${_lastDayNext.getFullYear()}-${_pad(_lastDayNext.getMonth()+1)}-${_pad(_lastDayNext.getDate())}`;
         const _df = document.getElementById('dateFilter');
